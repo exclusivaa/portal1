@@ -460,32 +460,56 @@ async function renderDashboard() {
     <div style="font-size:12px;color:var(--text3);margin-top:2px">Resultado acumulado ${anoAtivo}</div></div>
     <div class="ys">${[2023,2024,2025,2026].map(a=>`<button class="ys-btn${a===anoAtivo?' active':''}" onclick="anoAtivo=${a};renderDashboard()">${a}</button>`).join('')}</div>
   </div>
-  <div class="g4 mb20">
-    <div class="kpi kpi-g"><div class="kpi-hdr"><span class="kpi-lbl">Receita Realizada</span><span class="kpi-bdg bg-g">${anoAtivo}</span></div><div class="kpi-val" style="color:var(--green)">${fmtK(k.receita_realizada)}</div><div class="kpi-meta">Prevista: <b>${fmtK(k.receita_prevista)}</b></div></div>
-    <div class="kpi kpi-r"><div class="kpi-hdr"><span class="kpi-lbl">Despesa Realizada</span><span class="kpi-bdg bg-r">${anoAtivo}</span></div><div class="kpi-val" style="color:var(--red)">${fmtK(k.despesa_realizada)}</div><div class="kpi-meta">Prevista: <b>${fmtK(k.despesa_prevista)}</b></div></div>
-    <div class="kpi kpi-p"><div class="kpi-hdr"><span class="kpi-lbl">Resultado</span><span class="kpi-bdg ${res>=0?'bg-g':'bg-r'}">${res>=0?'Positivo':'Negativo'}</span></div><div class="kpi-val" style="color:${res>=0?'var(--green)':'var(--red)'}">${fmtK(res)}</div><div class="kpi-meta">Margem: <b>${mg}%</b></div></div>
-    <div class="kpi kpi-y"><div class="kpi-hdr"><span class="kpi-lbl">Lancamentos</span><span class="kpi-bdg bg-y">Total</span></div><div class="kpi-val">${(parseInt(k.qtd_receitas)||0)+(parseInt(k.qtd_despesas)||0)}</div><div class="kpi-meta">Entradas: <b>${k.qtd_receitas||0}</b> | Saidas: <b>${k.qtd_despesas||0}</b></div></div>
-  </div>
   <div class="g3 mb20">
-    <div class="mkpi"><div><div class="mkpi-lbl">Margem</div><div class="mkpi-val" style="color:var(--roxo)">${mg}%</div></div><span class="pill ${parseFloat(mg)>=0?'pill-g':'pill-r'}">${parseFloat(mg)>=0?'Positiva':'Negativa'}</span></div>
-    <div class="mkpi"><div><div class="mkpi-lbl">A Receber</div><div class="mkpi-val" style="color:var(--blue)">${fmtK(k.receita_prevista)}</div></div><span class="pill pill-b">Previsto</span></div>
-    <div class="mkpi"><div><div class="mkpi-lbl">A Pagar</div><div class="mkpi-val" style="color:var(--red)">${fmtK(k.despesa_prevista)}</div></div><span class="pill pill-r">Previsto</span></div>
+    <div class="kpi kpi-g">
+      <div class="kpi-hdr"><span class="kpi-lbl">Entradas</span></div>
+      <div class="kpi-val" style="color:var(--green)">${fmt(rec)}</div>
+      <div style="margin-top:10px;font-size:12px;color:var(--text3)">Provisao: <span style="color:var(--text2);font-weight:600">${fmt(k.receita_prevista)}</span></div>
+      <div style="font-size:12px;color:var(--text3)">Diferenca: <span style="font-weight:600;color:${(rec-(parseFloat(k.receita_prevista)||0))>=0?'var(--green)':'var(--red)'}">${fmt(rec-(parseFloat(k.receita_prevista)||0))}</span></div>
+      <div style="font-size:12px;color:var(--text3)">A Vencer: <span style="font-weight:600;color:var(--blue)">${fmt(parseFloat(k.receita_prevista)||0)}</span></div>
+    </div>
+    <div class="kpi kpi-r">
+      <div class="kpi-hdr"><span class="kpi-lbl">Saidas</span></div>
+      <div class="kpi-val" style="color:var(--red)">${fmt(desp)}</div>
+      <div style="margin-top:10px;font-size:12px;color:var(--text3)">Provisao: <span style="color:var(--text2);font-weight:600">${fmt(k.despesa_prevista)}</span></div>
+      <div style="font-size:12px;color:var(--text3)">Diferenca: <span style="font-weight:600;color:var(--green)">${fmt((parseFloat(k.despesa_prevista)||0)-desp)}</span></div>
+      <div style="font-size:12px;color:var(--text3)">A Vencer: <span style="font-weight:600;color:var(--blue)">R$ 0,00</span></div>
+    </div>
+    <div class="kpi kpi-p">
+      <div class="kpi-hdr"><span class="kpi-lbl">Geracao de Caixa</span><span class="kpi-bdg ${res>=0?'bg-g':'bg-r'}">${res>=0?'Positivo':'Negativo'}</span></div>
+      <div class="kpi-val" style="color:${res>=0?'var(--green)':'var(--red)'}">${fmt(res)}</div>
+      <div style="margin-top:10px;font-size:12px;color:var(--text3)">Provisao: <span style="color:var(--text2);font-weight:600">${fmt((parseFloat(k.receita_prevista)||0)-(parseFloat(k.despesa_prevista)||0))}</span></div>
+      <div style="font-size:12px;color:var(--text3)">Diferenca: <span style="font-weight:600;color:var(--red)">${fmt(res-((parseFloat(k.receita_prevista)||0)-(parseFloat(k.despesa_prevista)||0)))}</span></div>
+      <div style="font-size:12px;color:var(--text3)">A Vencer: <span style="font-weight:600;color:var(--blue)">${fmt(parseFloat(k.receita_prevista)||0)}</span></div>
+    </div>
   </div>
   <div class="card mb20">
-    <div class="card-hdr"><div><div class="card-hdr-t">Fluxo de Caixa ${anoAtivo}</div><div class="card-hdr-s">Entradas vs Saidas — Realizado</div></div></div>
-    <div class="card-body"><canvas id="ch-fluxo" height="220"></canvas></div>
+    <div class="card-hdr"><div><div class="card-hdr-t">Mes a Mes — Entradas e Saidas — Realizado ${anoAtivo}</div><div class="card-hdr-s">Comparativo mensal com resultado</div></div></div>
+    <div class="card-body"><canvas id="ch-fluxo" height="240"></canvas></div>
   </div>
   <div class="g2 mb20">
-    <div class="card"><div class="card-hdr"><div><div class="card-hdr-t">Top Receitas</div><div class="card-hdr-s">Por categoria</div></div></div><div class="card-body" id="bars-rec"></div></div>
-    <div class="card"><div class="card-hdr"><div><div class="card-hdr-t">Top Despesas</div><div class="card-hdr-s">Por categoria</div></div></div><div class="card-body" id="bars-desp"></div></div>
+    <div class="card"><div class="card-hdr"><div><div class="card-hdr-t">Top Categorias — Receita</div><div class="card-hdr-s">Maiores fontes de entrada</div></div></div><div class="card-body" id="bars-rec"></div></div>
+    <div class="card"><div class="card-hdr"><div><div class="card-hdr-t">Top Categorias — Despesa</div><div class="card-hdr-s">Maiores centros de custo</div></div></div><div class="card-body" id="bars-desp"></div></div>
   </div>`;
   const ctx=$('ch-fluxo');
   if(ctx&&typeof Chart!=='undefined') {
     charts.fluxo=new Chart(ctx.getContext('2d'),{type:'bar',data:{labels:fl.map(x=>x.mes_nome),datasets:[
       {label:'Entradas',data:fl.map(x=>parseFloat(x.receita)||0),backgroundColor:'rgba(0,179,125,.75)',borderRadius:5},
       {label:'Saidas',data:fl.map(x=>parseFloat(x.despesa)||0),backgroundColor:'rgba(232,63,91,.75)',borderRadius:5},
-      {label:'Resultado',data:fl.map(x=>parseFloat(x.resultado)||0),type:'line',borderColor:'#671e75',backgroundColor:'rgba(103,30,117,.08)',tension:.4,pointRadius:4,fill:true}
-    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#8b7d96',font:{size:11}}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#8b7d96',font:{size:11},callback:v=>'R$'+(v>=1000?(v/1000).toFixed(0)+'k':v)}}}}});
+      {label:'Resultado',data:fl.map(x=>parseFloat(x.resultado)||0),type:'line',borderColor:'#671e75',backgroundColor:'rgba(103,30,117,.08)',tension:.4,pointRadius:4,pointBackgroundColor:'#671e75',fill:true}
+    ]},options:{responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom',labels:{color:'#4a3f55',font:{size:11},padding:16,boxWidth:12}},
+        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmt(c.raw)}}
+      },
+      scales:{
+        x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#8b7d96',font:{size:11}}},
+        y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#8b7d96',font:{size:11},callback:v=>{const n=parseFloat(v);if(n>=1000000)return 'R$'+(n/1000000).toFixed(1)+'M';if(n>=1000)return 'R$'+(n/1000).toFixed(0)+'k';return 'R$'+n;}}}
+      }
+    }}); if(n>=1000000) return 'R$'+(n/1000000).toFixed(1)+'M'; if(n>=1000) return 'R$'+(n/1000).toFixed(0)+'k'; return 'R$'+n;
+        }}}
+      }
+    }});
   }
   renderBars('bars-rec',topRec||[],'#00b37d');
   renderBars('bars-desp',topDesp||[],'#e83f5b');
@@ -493,9 +517,11 @@ async function renderDashboard() {
 
 function renderBars(id,data,cor) {
   const el=$(id); if(!el) return;
-  if(!data.length){el.innerHTML='<div class="empty">Sem dados</div>';return;}
-  const max=Math.max(...data.map(d=>parseFloat(d.valor_total)||0));
-  el.innerHTML=data.map(d=>{const v=parseFloat(d.valor_total)||0,w=max>0?(v/max*100).toFixed(1):0;
+  if(!data||!data.length){el.innerHTML='<div class="empty">Sem dados</div>';return;}
+  const max=Math.max(...data.map(d=>parseFloat(d.total)||parseFloat(d.valor_total)||0));
+  el.innerHTML=data.map(d=>{
+    const v=parseFloat(d.total)||parseFloat(d.valor_total)||0;
+    const w=max>0?(v/max*100).toFixed(1):0;
     return `<div class="bar-item"><div class="bar-row"><span class="bar-name" title="${d.categoria_nome||''}">${d.categoria_nome||'Sem categoria'}</span><span class="bar-val" style="color:${cor}">${fmtK(v)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${cor}"></div></div></div>`;
   }).join('');
 }
