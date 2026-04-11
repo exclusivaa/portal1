@@ -2104,9 +2104,13 @@ function renderTabela(dados) {
     const pg=p; btn.onclick = () => { paginaAtual=pg; renderTabela(lista); };
     btns.appendChild(btn);
   }
+  const next = document.createElement('button');
+  next.className = 'page-btn'; next.textContent = 'Proximo'; next.disabled = paginaAtual===totalPags;
+  next.onclick = () => { paginaAtual++; renderTabela(lista); };
+  btns.appendChild(next);
+}
 
-  const next = document.createElement('b
-
-
+verificarSessao();
+</script>
 </body>
 </html>
