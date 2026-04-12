@@ -312,19 +312,42 @@ async function iniciar(){
   $('u-nome').textContent=(userEmail||'').split('@')[0];
   $('u-mail').textContent=userEmail||'';
   const data=await rpc('fn_empresas_do_usuario',{});
+  console.log('fn_empresas_do_usuario retornou:', data);
+  // Mostra diagnóstico no select enquanto carrega
   if(data&&data.length){
-    empresas=data;empresa=data[0];
-    $('sel-empresa').innerHTML=data.map(e=>`<option value="${e.empresa_id}">${e.empresa_nome}</option>`).join('');
+    // Detecta automaticamente qual campo é o nome e qual é o id
+    const amostra=data[0];
+    console.log('Campos disponíveis:', Object.keys(amostra));
+    const campoNome=Object.keys(amostra).find(k=>/(nome|name)/i.test(k))||Object.keys(amostra)[1]||'';
+    const campoId=Object.keys(amostra).find(k=>/(id)/i.test(k))||Object.keys(amostra)[0]||'';
+    console.log('Campo nome detectado:', campoNome, '| Campo id detectado:', campoId);
+    data.sort((a,b)=>(a[campoNome]||'').localeCompare(b[campoNome]||'','pt-BR'));
+    empresas=data.map(e=>({...e, empresa_id:e[campoId]||e.empresa_id, empresa_nome:e[campoNome]||e.empresa_nome}));
+    empresa=empresas[0];
+  if(data&&data.length){
+    $('sel-empresa').innerHTML=empresas.map(e=>`<option value="${e.empresa_id}">${e.empresa_nome}</option>`).join('');
   }else{
-    empresa={empresa_id:'d72464a0-3308-4bcc-8b38-b92bb0e90547',empresa_nome:'BJ Solutions'};
-    $('sel-empresa').innerHTML=`<option value="${empresa.empresa_id}">${empresa.empresa_nome}</option>`;
+    // Tenta busca alternativa com campo diferente
+    const data2=await rpc('fn_empresas_do_usuario',{p_usuario_id:null});
+    console.log('tentativa 2:', data2);
+    if(data2&&data2.length){
+      data2.sort((a,b)=>(a.empresa_nome||a.nome||'').localeCompare(b.empresa_nome||b.nome||'','pt-BR'));
+      empresas=data2;
+      empresa=data2[0];
+      const nomeFn=e=>e.empresa_nome||e.nome||e.name||'Sem nome';
+      const idFn=e=>e.empresa_id||e.id||'';
+      $('sel-empresa').innerHTML=data2.map(e=>`<option value="${idFn(e)}">${nomeFn(e)}</option>`).join('');
+    }else{
+      empresa={empresa_id:'d72464a0-3308-4bcc-8b38-b92bb0e90547',empresa_nome:'BJ Solutions'};
+      $('sel-empresa').innerHTML=`<option value="${empresa.empresa_id}">${empresa.empresa_nome}</option>`;
+    }
   }
-  $('chip-emp').textContent=empresa.empresa_nome;
+  $('chip-emp').textContent=empresa.empresa_nome||empresa.nome||empresa.name||'';
   await renderModulo();
 }
 function trocarEmpresa(id){
-  empresa=empresas.find(e=>e.empresa_id===id)||empresa;
-  $('chip-emp').textContent=empresa.empresa_nome;
+  empresa=empresas.find(e=>(e.empresa_id===id||e.id===id))||empresa;
+  $('chip-emp').textContent=empresa.empresa_nome||empresa.nome||empresa.name||'';
   renderModulo();
 }
 function irPara(m){
