@@ -313,10 +313,14 @@ async function iniciar(){
   $('u-mail').textContent=userEmail||'';
   const data=await rpc('fn_empresas_do_usuario',{});
   if(data&&data.length){
-    data.sort((a,b)=>(a.empresa_nome||'').localeCompare(b.empresa_nome||'','pt-BR'));
-    empresas=data;
-    empresa=data[0];
-    $('sel-empresa').innerHTML=data.map(e=>`<option value="${e.empresa_id}">${e.empresa_nome}</option>`).join('');
+    // Descobre os campos reais retornados pela API
+    const amostra=data[0];
+    const campoId=Object.keys(amostra).find(k=>/^(empresa_id|id)$/i.test(k))||Object.keys(amostra)[0];
+    const campoNome=Object.keys(amostra).find(k=>/^(empresa_nome|nome|name|razao_social|fantasia)$/i.test(k))||Object.keys(amostra).find(k=>typeof amostra[k]==='string'&&k!==campoId)||Object.keys(amostra)[1];
+    data.sort((a,b)=>(a[campoNome]||'').localeCompare(b[campoNome]||'','pt-BR'));
+    empresas=data.map(e=>({...e,empresa_id:e[campoId],empresa_nome:e[campoNome]}));
+    empresa=empresas[0];
+    $('sel-empresa').innerHTML=empresas.map(e=>`<option value="${e.empresa_id}">${e.empresa_nome}</option>`).join('');
   }else{
     empresa={empresa_id:'d72464a0-3308-4bcc-8b38-b92bb0e90547',empresa_nome:'BJ Solutions'};
     $('sel-empresa').innerHTML=`<option value="${empresa.empresa_id}">${empresa.empresa_nome}</option>`;
