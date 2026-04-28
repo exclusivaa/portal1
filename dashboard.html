@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exclusiva — Painel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --yellow:#ffc601;--yellow-dk:#e6b200;--yellow-pale:#fff8dc;
+  --purple:#671e75;--purple-dk:#4a1554;--purple-md:#7b2d8b;--purple-lt:#ddcde0;--purple-pale:#f5eef7;
+  --cream:#f7f4f0;--white:#fff;--ink:#1a1614;--gray-600:#474646;--gray-400:#9a9490;--gray-300:#ddd8d3;--gray-100:#f0ede8;
+  --sidebar-w:260px;--topbar-h:60px;--radius:10px;
+  --shadow:0 2px 12px rgba(103,30,117,.08);--shadow-md:0 4px 24px rgba(103,30,117,.12);
+}
+html,body{height:100%;font-family:Barlow,sans-serif;-webkit-font-smoothing:antialiased;background:var(--cream);color:var(--ink);overflow:hidden}
+.shell{display:grid;grid-template-columns:var(--sidebar-w) 1fr;grid-template-rows:var(--topbar-h) 1fr;height:100vh}
+/* SIDEBAR */
+.sidebar{grid-row:1/-1;background:var(--purple-dk);display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--white);border-bottom:1px solid var(--gray-300);display:flex;align-items:center;justify-content:space-between;padding:0 24px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.main{overflow-y:auto;padding:24px;grid-column:2}
+/* Sidebar head */
+.sb-head{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+.sb-logo{width:40px;height:40px;border-radius:9px;object-fit:cover;flex-shrink:0}
+.sb-name{font-size:18px;font-weight:900;font-style:italic;letter-spacing:.08em;text-transform:uppercase;color:#fff;line-height:1}
+.sb-tag{font-size:8px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-top:2px}
+/* Seletor */
+.cl-wrap{padding:12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.cl-label{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:5px}
+.cl-selector{position:relative}
+.cl-btn{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 10px;color:#fff;font-family:Barlow,sans-serif;font-size:13px;font-weight:500;text-align:left;cursor:pointer;transition:background .2s,border-color .2s;display:flex;align-items:center;gap:8px;position:relative}
+.cl-btn:hover{background:rgba(255,255,255,.11);border-color:rgba(255,198,1,.4)}
+.cl-btn.on{border-color:var(--yellow);background:rgba(255,198,1,.08)}
+.cl-dot{width:7px;height:7px;border-radius:50%;background:var(--yellow);flex-shrink:0;animation:blink 2s ease-in-out infinite;display:none}
+.cl-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cl-arr{flex-shrink:0;color:rgba(255,255,255,.35);transition:transform .2s;width:14px;height:14px;margin-left:auto}
+.cl-arr.on{transform:rotate(180deg)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.cl-dd{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:200;background:var(--purple-dk);border:1px solid rgba(255,198,1,.25);border-radius:8px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.3);display:none}
+.cl-dd.on{display:block}
+.cl-search{padding:7px;border-bottom:1px solid rgba(255,255,255,.08)}
+.cl-search input{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);border-radius:6px;padding:6px 10px;color:#fff;font-family:Barlow,sans-serif;font-size:12px;outline:none}
+.cl-search input::placeholder{color:rgba(255,255,255,.3)}
+.cl-search input:focus{border-color:rgba(255,198,1,.4)}
+.cl-list{max-height:200px;overflow-y:auto}
+.cl-item{padding:8px 12px;font-size:13px;font-weight:500;color:rgba(255,255,255,.8);cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:8px}
+.cl-item:hover{background:rgba(255,255,255,.06)}
+.cl-item.on{background:rgba(255,198,1,.10);color:var(--yellow)}
+.cl-item-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0}
+.cl-item.on .cl-item-dot{background:var(--yellow)}
+.cl-none{padding:14px;text-align:center;font-size:12px;color:rgba(255,255,255,.3)}
+/* Nav */
+.nav{flex:1;padding:6px 0;overflow-y:auto}
+.nav-sec{padding:11px 16px 3px;font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.25)}
+.ni{display:flex;align-items:center;gap:10px;padding:8px 16px;margin:1px 8px;border-radius:8px;color:rgba(255,255,255,.6);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;user-select:none}
+.ni:hover{background:rgba(255,255,255,.07);color:#fff}
+.ni.on{background:rgba(255,198,1,.12);color:var(--yellow);font-weight:600}
+.ni.on .ni-ico{opacity:1;color:var(--yellow)}
+.ni-ico{width:17px;height:17px;flex-shrink:0;opacity:.65}
+.ni-lbl{flex:1}
+.ni-badge{background:var(--yellow);color:var(--purple-dk);font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;line-height:1.4}
+.ni-chev{margin-left:auto;transition:transform .2s;opacity:.4;width:13px;height:13px}
+.ni-chev.on{transform:rotate(180deg)}
+.sub{overflow:hidden;max-height:0;transition:max-height .25s ease}
+.sub.on{max-height:200px}
+.si{display:flex;align-items:center;gap:7px;padding:7px 16px 7px 44px;margin:1px 8px;border-radius:8px;color:rgba(255,255,255,.5);font-size:12px;font-weight:400;cursor:pointer;transition:all .15s}
+.si:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
+.si.on{color:var(--yellow);font-weight:600;background:rgba(255,198,1,.08)}
+/* Sidebar foot */
+.sb-foot{padding:11px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+.ua{width:32px;height:32px;border-radius:50%;background:rgba(255,198,1,.2);border:1.5px solid rgba(255,198,1,.4);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--yellow);flex-shrink:0}
+.ui{flex:1;overflow:hidden}
+.un{font-size:12px;font-weight:600;color:rgba(255,255,255,.85);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ur{font-size:10px;color:rgba(255,255,255,.35)}
+.lo-btn{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.05);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);transition:all .2s;flex-shrink:0}
+.lo-btn:hover{background:rgba(239,68,68,.15);color:#fca5a5}
+/* TOPBAR */
+.pg-title{font-size:16px;font-weight:700;color:var(--ink)}
+.pg-sub{font-size:12px;color:var(--gray-400)}
+.tb-chip{display:flex;align-items:center;gap:6px;background:var(--purple-pale);border:1px solid rgba(103,30,117,.12);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--purple)}
+.tb-chip-dot{width:5px;height:5px;border-radius:50%;background:var(--purple);animation:blink 2s ease-in-out infinite}
+.ico-btn{width:36px;height:36px;border-radius:8px;background:transparent;border:1px solid var(--gray-300);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gray-400);transition:all .2s;position:relative}
+.ico-btn:hover{background:var(--purple-pale);border-color:rgba(103,30,117,.2);color:var(--purple)}
+.notif{position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:var(--yellow);color:var(--purple-dk);font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi{background:var(--white);border-radius:var(--radius);padding:18px;border:1px solid var(--gray-300);box-shadow:var(--shadow);transition:box-shadow .2s}
+.kpi:hover{box-shadow:var(--shadow-md)}
+.kpi-h{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.kpi-ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.kpi-ico.y{background:var(--yellow-pale)} .kpi-ico.p{background:var(--purple-pale)}
+.kpi-ico.r{background:#fef2f2} .kpi-ico.g{background:#f0fdf4}
+.kpi-ico svg{width:18px;height:18px;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.kpi-ico.y svg{stroke:#d97706} .kpi-ico.p svg{stroke:var(--purple)}
+.kpi-ico.r svg{stroke:#dc2626} .kpi-ico.g svg{stroke:#16a34a}
+.kpi-tr{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px}
+.kpi-tr.up{background:#f0fdf4;color:#16a34a} .kpi-tr.dn{background:#fef2f2;color:#dc2626}
+.kpi-tr.nt{background:var(--gray-100);color:var(--gray-400)}
+.kpi-v{font-size:24px;font-weight:800;color:var(--ink);line-height:1;margin-bottom:4px}
+.kpi-l{font-size:12px;font-weight:400;color:var(--gray-400)}
+/* Cards */
+.bot-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray-300);box-shadow:var(--shadow);overflow:hidden}
+.card-h{padding:15px 18px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between}
+.card-t{font-size:14px;font-weight:700;color:var(--ink)}
+.card-s{font-size:11px;color:var(--gray-400);margin-top:1px}
+.card-act{font-size:11px;font-weight:600;color:var(--purple);background:var(--purple-pale);border:none;border-radius:6px;padding:5px 10px;cursor:pointer;transition:background .15s}
+.card-act:hover{background:var(--purple-lt)}
+/* Gráfico */
+.ch-wrap{padding:18px}
+.ch-bars{display:flex;align-items:flex-end;gap:8px;height:130px;margin-bottom:8px}
+.bar-g{flex:1;display:flex;gap:3px;align-items:flex-end}
+.bar{flex:1;border-radius:4px 4px 0 0;transition:opacity .2s;cursor:pointer;min-width:8px}
+.bar:hover{opacity:.75}
+.bar.e{background:var(--yellow)} .bar.s{background:var(--purple-lt)}
+.ch-lbls{display:flex;gap:8px}
+.ch-lbl{flex:1;text-align:center;font-size:10px;color:var(--gray-400)}
+.ch-leg{display:flex;gap:16px;padding:0 18px 12px;justify-content:flex-end}
+.leg-i{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray-400)}
+.leg-d{width:8px;height:8px;border-radius:2px}
+.leg-d.e{background:var(--yellow)} .leg-d.s{background:var(--purple-lt)}
+/* Inadimplentes */
+.inadim-item{padding:11px 18px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:10px}
+.inadim-item:last-child{border-bottom:none}
+.inadim-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;background:var(--purple-pale);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--purple)}
+.inadim-n{font-size:13px;font-weight:600;color:var(--ink)}
+.inadim-d{font-size:11px;color:var(--gray-400);margin-top:1px}
+/* Status pills */
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap}
+.pill.at{background:#fef2f2;color:#dc2626} .pill.vh{background:#fff7ed;color:#d97706}
+.pill.pe{background:var(--purple-pale);color:var(--purple)} .pill.pa{background:#f0fdf4;color:#16a34a}
+/* Tabelas */
+.tbl-wrap{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray-300);box-shadow:var(--shadow);overflow:hidden}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{padding:10px 16px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--gray-400);background:var(--gray-100);border-bottom:1px solid var(--gray-300)}
+.tbl td{padding:11px 16px;border-bottom:1px solid var(--gray-100);color:var(--gray-600);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--cream)}
+.vp{font-weight:700;color:#16a34a} .vn{font-weight:700;color:#dc2626}
+.act-btn{background:transparent;border:none;cursor:pointer;color:var(--gray-400);padding:4px;border-radius:4px;transition:all .15s;font-size:15px}
+.act-btn:hover{background:var(--gray-100);color:var(--ink)}
+/* Module header */
+.mod-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.mod-t{font-size:20px;font-weight:800;color:var(--ink)}
+.mod-t span{color:var(--purple)}
+.mod-acts{display:flex;gap:8px}
+/* Buttons */
+.btn-p{background:var(--purple);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:Barlow,sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:6px}
+.btn-p:hover{background:var(--purple-md)}
+.btn-s{background:var(--white);color:var(--purple);border:1px solid rgba(103,30,117,.2);border-radius:8px;padding:9px 16px;font-family:Barlow,sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.btn-s:hover{background:var(--purple-pale)}
+/* Filtros */
+.filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.f-sel{background:var(--white);border:1px solid var(--gray-300);border-radius:8px;padding:8px 12px;font-family:Barlow,sans-serif;font-size:13px;color:var(--ink);outline:none;cursor:pointer;transition:border-color .2s}
+.f-sel:focus{border-color:var(--purple)}
+.f-inp{flex:1;min-width:180px;background:var(--white);border:1px solid var(--gray-300);border-radius:8px;padding:8px 12px;font-family:Barlow,sans-serif;font-size:13px;color:var(--ink);outline:none;transition:border-color .2s}
+.f-inp:focus{border-color:var(--purple)}
+/* Tipo filter pills */
+.tipo-filter{background:var(--white);border:1.5px solid var(--gray-300);border-radius:20px;padding:5px 13px;font-family:Barlow,sans-serif;font-size:12px;font-weight:600;color:var(--gray-600);cursor:pointer;transition:all .15s}
+.tipo-filter:hover{border-color:var(--purple);color:var(--purple)}
+.tipo-filter.on{background:var(--purple);border-color:var(--purple);color:#fff}
+/* Empty */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 20px;text-align:center}
+.empty-ico{width:52px;height:52px;border-radius:14px;background:var(--purple-pale);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.empty-ico svg{width:26px;height:26px;stroke:var(--purple);fill:none;stroke-width:1.5}
+.empty-t{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.empty-d{font-size:13px;color:var(--gray-400);max-width:280px;line-height:1.6}
+.hidden{display:none!important}
+/* Modal overlay */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 0}
+.modal-overlay.on{display:flex}
+.modal-box{background:var(--white);border-radius:16px;width:700px;max-width:95vw;margin:auto;box-shadow:0 24px 80px rgba(0,0,0,.3);position:relative}
+/* Modal header */
+.modal-head{padding:18px 24px;border-bottom:1px solid var(--gray-300);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--white);border-radius:16px 16px 0 0;z-index:10}
+.modal-title{font-size:16px;font-weight:800;color:var(--ink)}
+.modal-sub{font-size:12px;color:var(--gray-400);margin-top:2px}
+.modal-close{width:30px;height:30px;border-radius:7px;border:1px solid var(--gray-300);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--gray-400)}
+.modal-close:hover{background:var(--gray-100)}
+/* Tipo btns */
+.tipo-btns{display:flex;gap:7px;flex-wrap:wrap}
+.tipo-btn{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1.5px solid var(--gray-300);border-radius:8px;padding:7px 13px;font-family:Barlow,sans-serif;font-size:12px;font-weight:600;color:var(--gray-600);cursor:pointer;transition:all .15s}
+.tipo-btn:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-pale)}
+.tipo-btn.on{background:var(--purple);border-color:var(--purple);color:#fff}
+.tipo-btn.on svg{stroke:#fff}
+/* Abas modal */
+.mp-tabs{display:flex;border-bottom:1px solid var(--gray-300);padding:0 24px}
+.mp-tab{padding:11px 15px;border:none;background:transparent;font-family:Barlow,sans-serif;font-size:13px;font-weight:600;color:var(--gray-400);cursor:pointer;border-bottom:2.5px solid transparent;transition:all .15s;white-space:nowrap}
+.mp-tab:hover{color:var(--ink)}
+.mp-tab.on{color:var(--purple);border-bottom-color:var(--purple)}
+/* Form fields */
+.mp-body{padding:20px 24px}
+.mp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mp-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.mp-f{display:flex;flex-direction:column}
+.mp-l{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-400);margin-bottom:5px}
+.mp-i{border:1px solid var(--gray-300);border-radius:8px;padding:10px 12px;font-family:Barlow,sans-serif;font-size:13px;color:var(--ink);outline:none;background:var(--white);transition:border-color .2s,box-shadow .2s}
+.mp-i:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(103,30,117,.08)}
+.mp-i::placeholder{color:var(--gray-400);font-size:12px}
+textarea.mp-i{min-height:68px;resize:vertical}
+/* CNPJ busca */
+.cnpj-box{background:var(--purple-pale);border:1px solid rgba(103,30,117,.15);border-radius:10px;padding:13px 15px;margin-bottom:18px;display:flex;align-items:flex-start;gap:10px}
+.cnpj-box svg{flex-shrink:0;margin-top:2px}
+.cnpj-row{display:flex;gap:8px;margin-top:6px}
+/* Modal foot */
+.modal-foot{padding:14px 24px;border-top:1px solid var(--gray-100);display:flex;justify-content:space-between;align-items:center;position:sticky;bottom:0;background:var(--white);border-radius:0 0 16px 16px}
+.modal-note{font-size:11px;color:var(--gray-400)}
+/* Alert */
+.mp-alert{display:none;padding:10px 14px;border-radius:8px;font-size:12px;margin:0 24px 16px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sb-head">
+    <img class="sb-logo" src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCASwBLADASIAAhEBAxEB/8QAHAABAQEAAwEBAQAAAAAAAAAAAAgHBAUGAwEC/8QARhABAAECAwUDCAcGBQMEAwAAAAECAwQFBggRN3SxITFRBxITF0FhgZEiVnGUodHSFCMyUoLBQlNicqIVFrIlM2Pho8Lw/8QAHAEBAAMBAAMBAAAAAAAAAAAAAAQFCAcBAgMG/8QAQhEBAAEBAgcNBgUCBgMAAAAAAAECAwQFBxEyNYLBBhITFBchMUFRYWSj4lRxgZGh0RUWIpKxI/BCUmJywvElstL/2gAMAwEAAhEDEQA/ANmAZRdIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABnW0Nw/jnLXSpOjpW5TF3+YbhxzjG8/VMZN5vujJ176O3sRrW8cHVkyLQEXj9NyM+N8v1vnxzuWgIvDkZ8b5frOOdy0BF4cjPjfL9ZxzuWgIvDkZ8b5frOOdy0BF4cjPjfL9ZxzuWgIvDkZ8b5frOOdy0BF4cjPjfL9ZxzuWgIvDkZ8b5frOOdy0BF4cjPjfL9ZxzuWgIvDkZ8b5frOOdy0BF4cjPjfL9ZxzuWgA4emgAAAAi8dw5GfG+X60LjnctAReHIz43y/Wcc7loCLw5GfG+X6zjnctAReHIz43y/Wcc7loCLw5GfG+X6zjnctARe/YmYnfE7njka8b5frOOdyzxG+Hx2Nw8xOHxmItTH8l2aeku6y/W+rsBMTh9RZhujui7em7EfCvfCJeMTt6pj+jeqap76Zj+JqeYvcdcKuE+ZN5aNTYWqmnMcNgsxtx3zNHoq5+NPZ/xe/wBOeV/S+ZzTax038qvT2fvo863v/wB9PWYh+Qwni9w9g+Jqmx39MddE776Z30fam8UVdbRB8sJicPi8PRiMLftX7Ncb6LlquKqao90x2S+r8XVTNMzExkmH2AHgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZ1tDcP45y10qToovaG4fxzlrpUnRpXFToHXq2K69Z4A6WjAAAAAAAAAAAAAAAAAAAALQAYfXQAAACLwG4FKAAAAAAAAAAAAAA7bTmos609ifT5RmF7DTM76qInfRX/upnsn5Nn0N5YMuzKbeC1Fboy7Ez2RiKd/oK59/to+O+PfDAh+Xw/uQwXh2ieMWeSvqrjmqj49funK+tna1UdCz7ddFyimu3VTXRVG+mqmd8THjD9TL5O/KJmulLtGGuzXjcqmfpYaurtt++3Psn3d0/ionTud5bqDK7eY5Xiab9ivsn2VUVe2mqPZMM67qdxt+3PWmW0/VZT0Vx0e6eye7r6plYWVtTae92ID8i+oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADOtobh/HOWulSdFF7Q3D+OctdKk6NK4qdA69WxXXrPAHS0YAAAAAAAAAAAAAAAAAAABaADD66AAAAReA3ApQAAAAAAAAAAAAAAAB3+iNVZnpPNqcbgK/OtVbov4eqfoXqfCfCfCfZ84dAI17uljfLGqwt6YqoqjJMT1vMTMTlhXelM/y7UuTWs0y2751uvsron+K3V7aao9kx/8AbtUr+TjV+L0jntOKo865gr26jF2In+Onxj/VHfHy9qocvxmGzDA2cbg71N7D36Irt1091UT3Mu7tdyNpudvf6OexrzZ/4z3x9Y5+2Is7G14SO99wH4p9gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGdbQ3D+OctdKk6KL2huH8c5a6VJ0aVxU6B16tiuvWeAOlowAAAAAAAAAAAAAAAAAAAC0AGH10AAAAi8BuBSgAAAAAAAAAAAAAAAAADXdn7V84bGTpbHXf3F+ZrwdVU/wXO+aPsnvj37/ABZE+mGvXcNiLeIsXKrd21XFdFdM9tNUTviY+Kl3Q4EscN4PtLna9fRPZVHRP99MZYe9nXNFWWFmDo9B5/b1LpbB5tT5sXLlHm36I/w3KeyqPn2x7ph3jIF7utrdLeuwtoyVUzMTHfHNK2iYmMsAD4PIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADOtobh/HOWulSdFF7Q3D+OctdKk6NK4qdA69WxXXrPAHS0YAAAAAAAAAAAAAAAAAAABaADD66AAAAReA3ApQAAAAAAAAAAAAAAAAAAAGt7OGezYzfG6fu1/u8VR6ezEz3XKeyqI+2nt/obqkXR+aTkuqctzSKpinD4imqvd7aN+6qPjTMwrqJiY3xO+JZwxr4Ki6YWpvdEc1rTz/wC6nmn6b1Y3WrLTk7ABy5JAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZ1tDcP45y10qToovaG4fxzlrpUnRpXFToHXq2K69Z4A6WjAAAAAAAAAAAAAAAAAAAALQAYfXQAAACLwG4FKAAAAAAAAAAAAAAAAAAAAK10DjpzLRWT4yqrzq68HbiufGqI3VfjEpKUv5Cr83vJrgKZnfNm5dt//AJKp/u5Ljeu0V4LsbfrpryfCaZ2xCXdJ/VMPcgM8p4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADOtobh/HOWulSdFF7Q3D+OctdKk6NK4qdA69WxXXrPAHS0YAAAAAAAAAAAAAAAAAAABaADD66AAAAReA3ApQAAAAAAAAAAAAAAAAAAABRmz1O/wAn0R4Yy7H4UpzUXs88P55y70pc0xr6B16f4lJuue0UBmpYgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM62huH8c5a6VJ0UXtDcP45y10qTo0rip0Dr1bFdes8AdLRgAAAAAAAAAAAAAAAAAAAFoAMProAAABF4DcClAAAAAAAAAAAAAAAAAAAAFF7PPD+ecu9KU6KL2eeH885d6UuaY1tA69O1Juue0UBmpYgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM62huH8c5a6VJ0UXtDcP45y10qTo0rip0Dr1bFdes8AdLRgAAAAAAAAAAAAAAAAAAAFoAMProAAABF4DcClAAAAAAAAAAAAAAAAAAAAFF7PPD+ecu9KU6KL2eeH885d6UuaY1tA69O1Juue0UBmpYgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM62huH8c5a6VJ0UXtDcP45y10qTo0rip0Dr1bFdes8AdLRgAAAAAAAAAAAAAAAAAAAFoAMProAAABF4DcClAAAAAAAAAAAAAAAAAAAAFF7PPD+ecu9KU6KL2eeH885d6UuaY1tA69O1Juue0UBmpYgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM62huH8c5a6VJ0UXtDcP45y10qTo0rip0Dr1bFdes8AdLRgAAAAAAAAAAAAAAAAAAAFoAMProAAABF4DcClAAAAAAAAAAAAAAAAAAAAFF7PPD+ecu9KU6KL2eeH885d6UuaY1tA69O1Juue0UBmpYgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM62huH8c5a6VJ0UXtDcP45y10qTo0rip0Dr1bFdes8AdLRgAAAAAAAAAAAAAAAAAAAFoAMProAAABGE9k7n45GZWZw+Y4mxMbpt3q6PlMw47btFUV0xVHWpgB7vAAAAAAAAAAAAAAAAAAAovZ54fzzl3pSnRRezzw/nnLvSlzTGtoHXp2pN1z2igM1LEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABnW0Nw/jnLXSpOii9obh/HOWulSdGlcVOgderYrr1ngDpaMAAAAAAAAAAAAAAAAAAAAtABh9dAAAAJP8AKRg5wOvM7w8xuj9suXKY8Irnzo/CqHn2l7RGWThNbWswpp3UY7DU1TV410fRn8Io+bNGw9zF9i/YHu1vHXRTl98Rkn6xKptKd7XMAC9fMAAAAAAAAAAAAAAAAAAUXs88P55y70pToovZ54fzzl3pS5pjW0Dr07Um657RQGaliAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzraG4fxzlrpUnRRe0Nw/jnLXSpOjSuKnQOvVsV16zwB0tGAAAAAAAAAAAAAAAAAAAAWgAw+ugAAAGcbQWSzmOjKMxtUedey27FyfH0dX0avx82fgnZZWYYWxjsDfwWJo8+xiLdVq5T401RumPlKR9T5RiMhz/ABuUYmJ9Jhrs0RVu3edT301fGN0/FoDFJhqLa52mDq5/VZzvqf8AbPT8qv8A2QL1RknfOtAdgRAAAAAAAAAAAAAAAAAABRezzw/nnLvSlOii9nnh/POXelLmmNbQOvTtSbrntFAZqWIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADOtobh/HOWulSdFF7Q3D+OctdKk6NK4qdA69WxXXrPAHS0YAAAAAAAAAAAAAAAAAAABaADD66AAAAGS7QmlJxmX29TYK1M3sLTFvFRTH8Vrf2Vf0zPb7p9zWn8X7Vu/Zrs3qKblq5TNNdFUb4qiY3TErnc/hq2wLhCzvll/hnnjtiemPjHynJL0tKIrpySjIev8AKno+9pLP6qLVNVWW4mZrwlye3dHtomfGPxjdLyDXWDsIWGEbtRervVlorjLH99sdEx1SqqqZpnJIAmvUAAAAAAAAAAAAAAAAUXs88P55y70pToovZ54fzzl3pS5pjW0Dr07Um657RQGaliAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzraG4fxzlrpUnRRe0Nw/jnLXSpOjSuKnQOvVsV16zwB0tGAAAAAAAAAAAAAAAAAAAAWgAw+ugAAAAAHVasyDL9S5JeyrMbe+3XG+iuP4rVfsqp98fnCXtY6bzHS+c3MtzGjtj6Vq7TH0btHsqj8vYrZ02sdNZZqnKKsvzK1v9tq7T/Haq8aZ/t7X77cRu1tNz9twNtlqsKp5466Z/wA0bY6/e+FtYxaRljpSQPR650fm+ksw9Bj7fpMNXM+gxVEfQux/afGJ/GO15xpi53ywvtjTb3euKqKuiY/v/pWzE0zkkASngAAAAAAAAAAAAAAUXs88P55y70pToovZ54fzzl3pS5pjW0Dr07Um657RQGaliAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzraG4fxzlrpUnRRe0Nw/jnLXSpOjSuKnQOvVsV16zwB0tGAAAAAAAAAAAAAAAAAAAAWgAw+ugAAAAAAAHGzXL8DmmBuYHMcLaxOGuxurt3I3xP5T72H6+8kGOwFVzHaZmvHYXtmcLVP763/t/nj8ftbyP0e57dVhHAFrvrrX+memmeemfh1T3xkl87SyptI50ZXrdyzdqtXbdVu5RO6qmqN00z4TD+FY6r0dp7U1H/qmAoqv7t1OItz5l2n+qO/7J3wyfUvkUzXDTVdyHH2sdb74s3/3dz7In+Gfj5ruuA8Z2CMIRFF5nga/9Wb8KvvkQq7tXT0c7Jh2mdadzzJapjNMpxeFiJ3efXanzJ+yrun4S6t0KwvFleKItLKqKqZ64nLHzhHmJjpAH2eAAAAAAAAAABRezzw/nnLvSlOii9nnh/POXelLmmNbQOvTtSbrntFAZqWIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADOtobh/HOWulSdFF7Q3D+OctdKk6NK4qdA69WxXXrPAHS0YAAAAAAAAAAAAAAAAAAABaADD66AAAAAAAAAAAAJiJiYmImJ74l0eZaP0tmMzVjMgy+uurvrixFNU/1U7pd4Pvd73b3arfWFc0z2xMx/DxMRPS8NifJPoe9MzRll2xM/5eJuf3mXEq8jmjpnsjMI+zER+TRBdUbrsOURki92n7pn+XpwVHYzr1N6P8cx+8R+k9Tej/ABzH7xH6Wij6fnLD3tdfzOBo7GdepvR/jmP3iP0nqb0f45j94j9LRQ/OWHva6/mcDR2M69Tej/HMfvEfpPU3o/xzH7xH6Wih+csPe11/M4GjsZ16m9H+OY/eI/SepvR/jmP3iP0tFD85Ye9rr+ZwNHYzr1N6P8cx+8R+k9Tej/HMfvEfpaKH5yw97XX8zgaOxnXqb0f45j94j9L12ktO5fpjKv8ApmWem9B6Sq5+9r86d87t/bujwduId+3Q4UwhZcDerequnLlyTOWMrzTZ00zliABTPcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABnW0Nw/jnLXSpOii9obh/HOWulSdGlcVOgderYrr1ngDpaMAAAAAAAAAAAAAAAAAAAAtABh9dAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM62huH8c5a6VJ0UXtDcP45y10qTo0rip0Dr1bFdes8AdLRgAAAAAAAAAAAAAAAAAAAFoAMProAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABnW0Nw/jnLXSpOii9obh/HOWulSdGlcVOgderYrr1ngDpaMAAAAAAAAAAAAAAAAAAAAtABh9dAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM62huH8c5a6VJ0UXtDcP45y10qTo0rip0Dr1bFdes8AdLRgAAAAAAAAAAAAAAAAAAAFoAMProAAAAAAAAAAAAB8sVicNhbfpMViLVij+a5XFMfOXmmmapyUxlkfUdFidZ6Tw0zF3UeV7474pxNNUx8plxKvKHouJ3TqHCfDzp/ssqMC4StIy0XeufdTV9nrv6e16geW9YmivrDhflV+R6xNFfWHC/Kr8nv+AYV9mtP2VfZ44SntepHlvWJor6w4X5VfkesTRX1hwvyq/I/AMK+zWn7KvscJT2vUjy3rE0V9YcL8qvyPWJor6w4X5VfkfgGFfZrT9lX2OEp7XqR5b1iaK+sOF+VX5HrE0V9YcL8qvyPwDCvs1p+yr7HCU9r1I8t6xNFfWHC/Kr8j1iaK+sOF+VX5H4BhX2a0/ZV9jhKe16keW9YmivrDhflV+TvMkzfLc6wX7bleLoxWH8+aPPo37t8d8dv2vhecFX660cJb2NVFPbNMxHzmHmKqZ6Jc0BAewAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADOtobh/HOWulSdFF7Q3D+OctdKk6NK4qdA69WxXXrPAHS0YAAAAAAAAAAAAAAAAAAABaADD66AAAAAAAAB/N25btWqrt2um3boiaqqqp3RTEd8zPsZHr7yxWMLVcwOlqKMTdjfFWMuU/u6Z/0U/wCL7Z7PtXOBNz9/w3bcDc6MvbPRTHvn+5nqh6V2lNEZZajnOb5Zk2FnFZrjrGDs+yq7XEed7ojvmfdDMNS+WzA2Jqs6fy2vF1R2RfxM+ZR9sUx9KY+3zWL5vmmY5vjKsZmeMvYu/V313at+6PCPCPdHY4buGA8VGDrrEV4Qqm1q7OeKfpzz8Zj3IVd6qnN5nr878pOss1mqK84uYW3PdbwkeiiPjH0vnLyuJv38Tdm7iL1y9cnvquVTVM/GXyHSblgy53Gne3Wypoj/AExEfwjzVNXTIAnPUAAAAAAAAAAUXs88P55y70pToovZ54fzzl3pS5pjW0Dr07Um657RQGaliAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzraG4fxzlrpUnRRe0Nw/jnLXSpOjSuKnQOvVsV16zwB0tGAAAAAAAAAAAAAAAAAAAAWgAw+ugAAAAABws9zbL8kyy7mWZ4imxhrUb6qp75n2REe2Z8H9ZzmWCyfLL+ZZhfps4axT51dU9I8ZnuiEx+UXWeP1fm03rs1WcDamYw2G39lEfzT41T7Z+D9nuN3HW+6K8ZZ/TY051X/GO+fpHPPVE/G2tos473N8pHlDzPVl+rC2ZrweU01fQw8T23N3dVXMd8+7uj397xINPYNwZdcGXem7XWiKaI6o/me2e+VbVVNU5ZAE96gAAAAAAAAAAAAACjNnqJjyfb/HGXZ/ClOalvIPYm15NsDXMbvTXb1f/ADmn/wDVzHGzXFOAqYnrtKf4qnYk3XPe6AZtWIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADOtobh/HOWulSdFF7Q3D+OctdKk6NK4qdA69WxXXrPAHS0YAAAAAAAAAAAAAAAAAAABaADD66AAAACZiImZndEDNfLzqycmyGnJcFd83HZhTMVzE9tuz3TP8AV3fZ5y0wLgm3wvfrO52HTVPT2R1zPujnetdcUU5ZZ15ZdbValzicuwF3flODrmKPNnsvV901/Z7I93b7WfA11gnBd3wVdKLpdoyU0x8565nvnplU11TVOWQBZPUAAAAAAAAAAAAAAAAVj5OcFOX6EyXCzG6qMJRXVHhVVHnTHzqlL2m8urzfP8BldG/fisRRamY9kTPbPwjfKv6KaaKKaKIimmmN0RHshxPHFfoizu1zieeZmqfhzR/M/JNulPPMv0BwtNAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZ1tDcP45y10qToovaG4fxzlrpUnRpXFToHXq2K69Z4A6WjAAAAAAAAAAAAAAAAAAAALQAYfXQAAAD+L923YsXL96uKLduma66p7qYiN8yk3XGfXdSaoxubXJnzLtfm2aZ/wW47KY+Xf75lu/l2zucp0Ldw1qvzb+Y1xh6d3f5nfXP2bo3f1Jtd6xR4Fizu9rhOuOeqd7T7o6Z+M83wQb3XzxSAOzIYAAAAAAAAAAAAAAAAD9iJqmIiJmZ7IiHgahs7ZJOM1RiM5uUb7OX2vNomf8yvfEfKnzvnDf3l/Jdp3/ALZ0dhcFdoinF3f3+K8fSVez4Rup+D1DJu7fDcYZwza21E5aKf00+6nr+M5Z+K1saN5READ8k+oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADOtobh/HOWulSdFF7Q3D+OctdKk6NK4qdA69WxXXrPAHS0YAAAAAAAAAAAAAAAAAAABaADD66AAAAYDtHZnOJ1Xg8spq30YLDedMeFdc75/4xQy16Xyo42cf5Qc7vzO/zcVVaj7Lf0I/8XmmwNytxi44Gu1hEdFETPvnnn6zKptat9XMgD9A+YAAAAAAAAAAAAAAAA0nyE6SnOtQf9ZxlrfgMuqiqnfHZcvd9MfD+Kfh4vGaSyDHalzyxlWAp+ncnfXXMfRtUR31T7o/Gd0e1VOm8mwWQZLhsqwFHm2bFO7fPfXV7ap98z2uZYyN1dOC7nNxsKv61rH7aeuffPRHxnqSbvZb6d9PRDsQGbFiAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzraG4fxzlrpUnRRe0Nw/jnLXSpOjSuKnQOvVsV16zwB0tGAAAAAAAAAAAAAAAAAAAAWgAw+ugAAAEc5venE5tjMRM75u3669/wBtUy4r9md8zM+1+Nu2dEUURTHUpgB7vAAAAAAAAAAAAAAA5uSZVj86zOzluW4eq/ib07qaafZ4zM+yI9subpHTGb6ozKMFleHmrdu9Leq7LdqPGqf7d8qQ0BozK9IZd6LCx6bGXIj9oxVVP0rk+EeFPu+e9+G3X7t7rufsps6MldvPRT2d9XZHd0z9Y+9lYzaT3P58nOjsFpDJ/wBnt+bext7dVisRu/jn+WPCmPZ83qAZiv1+t7/eK7zeKt9XVOWZ/v6R1QsqaYpjJAAivIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADOtobh/HOWulSdFF7Q3D+OctdKk6NK4qdA69WxXXrPAHS0YAAAAAAAAAAAAAAAAAAABaADD66AAAAReA3ApQAAAAAAAAAAH9UU1V1RTRTNVU9kREb5l4nmH8j0mTaF1bm00/smRYuKJ7rl6n0VG7x317t/we/055EcRXVTd1BmtFunvmzhI86qf66o3R8pfm8J7r8DYMieMXinLHVE76flGXJ8cj602VdXRDILFq7fvUWbFqu7drndTRRTM1VT4REd7UdC+R/Mcwm3jNSVV5fhe+MPTu9NXHv8AZRHzn3Q2DTGk8g03b83KcutWbkxuqvVfSuVfbVPb8I7HduR7oca95vMTY4Mo4On/ADTz1fCOiPrPuSrO6xHPU4WS5Vl2S5fRgMrwlvC4ejuoojvnxme+Z989rmg5Ha2tdrXNpaTM1TzzM88z75S4jIAPQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZ1tDcP45y10qToovaG4fxzlrpUnRpXFToHXq2K69Z4A6WjAAAAAAAAAAAAAAAAAAAALQAYfXQAAADy3q70V9XsL86vzPV3or6vYX51fm9SLb8fwr7Tafvq+704OnseW9Xeivq9hfnV+Z6u9FfV7C/Or83qQ/H8K+02n76vucHT2PLervRX1ewvzq/M9Xeivq9hfnV+b1Ifj+FfabT99X3ODp7HlvV3or6vYX51fmervRX1ewvzq/N6kPx/CvtNp++r7nB09jy3q70V9XsL86vzPV3or6vYX51fm9SH4/hX2m0/fV9zg6ex5b1d6K+r2F+dX5keTzRUTv/AO3sJ/y/N6kPx/CvtNp++r7nB09jz2H0PpCxO+jTeWT/AL7EV/8AlvdxgsvwGBjdgsDhsNHhZtU0dIckRLfCF7vEZLa1qq99Uz/MvaKYjogARHkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABnW0Nw/jnLXSpOii9obh/HOWulSdGlcVOgderYrr1ngDpaMAAAAAAAAAAAAAAAAAAAAtABh9dAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM62huH8c5a6VJ0UXtDcP45y10qTo0rip0Dr1bFdes8AdLRgAAAAAAAAAAAAAAAAAAAFoAMProAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABnW0Nw/jnLXSpOii9obh/HOWulSdGlcVOgderYrr1ngDpaMAAAAAAAAAAAAAAAAAAAAtABh9dAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM62huH8c5a6VJ0UXtDcP45y10qTo0rip0Dr1bFdes8AdLRgAAAAAAAAAAAAAAAAAAAFoAMProAAAAAAAAAAAACqYpiZmYiI75l0eZaw0tl0zTi8/y+iqO+im9FdUf0075fe73S3vNW9sKJqnsiJn+HiZiOl3g8NifKzoezMxRmd6/u/y8Nc/vEOJV5ZNHRPZOYz9mHj813RuRw5XGWLpaftmP5enC0drRBnXrk0f4Zj93j9R65NH+GY/d4/U9/ybh72Sv5HDUdrRRnXrk0f4Zj93j9R65NH+GY/d4/Ufk3D3slfyOGo7WijOvXJo/wAMx+7x+o9cmj/DMfu8fqPybh72Sv5HDUdrRRnXrk0f4Zj93j9R65NH+GY/d4/Ufk3D3slfyOGo7WijOvXJo/wzH7vH6j1yaP8ADMfu8fqPybh72Sv5HDUdrRRnXrk0f4Zj93j9T12ktRZfqfKv+p5Z6b0HpKrf72jzZ3xu39m+fFDv257CmD7Lhr1YVUU5cmWYyRleabSmqckS7cBTPcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABnW0Nw/jnLXSpOii9obh/HOWulSdGlcVOgderYrr1ngDpaMAAAAAAAAAAAAAAAAAAAAtABh9dAAAAAAAAA4ubZlgcpwFzHZlirWFw1uN9Vy5O6Ps98+6O1h2vfK/j8wquYLTUV4DC9sTiav8A3rke7+SPx+x+k3PblcI4ftN7daP0x01TzUx8eue6MsvnaWtNnHO1vVms9PaYomM0x9MX92+nD2o8+7V/THd9s7oZNqby1ZtiZqtZDgbWAt90Xr37y5Pv3fwx9nayu7cuXblV27XVXXXO+qqqd8zPjMv4d0wHixwRg+IrvMcNX/qzfhT0fPKhV3muro5naZ1qHPM5rmrNM1xeLiZ3+Zcuz5kfZT3R8IdWDoVjYWV3oizsqYppjqiMkfKEeZmekAfZ4AAAAAAAAAAFF7PPD+ecu9KU6KL2eeH885d6UuaY1tA69O1Juue0UBmpYgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM62huH8c5a6VJ0UXtDcP45y10qTo0rip0Dr1bFdes8AdLRgAAAAAAAAAAAAAAAAAAAFoAMProAAAAAAdJrPU+V6VymrH5lcnfPZZs0/x3avCI6z7H01fqHL9MZJdzTMK/o0/Rt24n6V2v2Ux//dkb5S9q7UWY6nzm5meZXN9dXZbt0/wWqPZTTHh1fv8AcPuJtN0Ftw1vlpsKZ5566p/yxtnq974W1tFnGSOlydb6uzbVmYzicwu+ZYomfQYaif3dqPd4z4zPb0eeBpi6XOwuVjTYXeiKaKeaIjoVszMzlkASXgAAAAAAAAAAAAAAUXs88P55y70pToovZ54fzzl3pS5pjW0Dr07Um657RQGaliAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzraG4fxzlrpUnRRe0Nw/jnLXSpOjSuKnQOvVsV16zwB0tGAAAAAAAAAAAAAAAAAAAAWgAw+ugAAAB88Tfs4bDXcTiLlNqzaomu5XVO6KaYjfMy+jINobVc4fC2tLYK5uuX4i7jJpnuo3/Ro+Mxvn3RHiutz2BLXDeELO52XNvumeymOmft2zkh6WlcUU5ZZz5TtX39W6grv0zVRl9iZowlqfZT7apj+arv8AlHseUBrq4XCwwfdqLtd6clFEZIj++uemZ65VVVU1TlkATHqAAAAAAAAAAAAAAAAKL2eeH885d6Up0UXs88P55y70pc0xraB16dqTdc9ooDNSxAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZ1tDcP45y10qToovaG4fxzlrpUnRpXFToHXq2K69Z4A6WjAAAAAAAAAAAAAAAAAAAALQAYfXQAAADj5pjbGW5bicwxVXm2MNaqu3J91Mb5SNqHNMTned4zNcXO+9ibs3Jjfv82PZTHuiN0R9jddofOpwOkrGVWq/Nu5je3Vbv8ujdVV+M0fintoPFLgaLC42mEa4/VaTkj/bT0/OrLl90IF6ry1b0AddRAAAAAAAAAAAAAAAAAABRezzw/nnLvSlOii9nnh/POXelLmmNbQOvTtSbrntFAZqWIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADOtobh/HOWulSdFF7Q3D+OctdKk6NK4qdA69WxXXrPAHS0YAAAAAAAAAAAAAAAAAAABaADD66AAAATrtCZlOM13+xRVvowOHot7vZ51X05n5VUx8Gcu98oOLnHa4zrEzO+Ksbdppn/AE01TTH4RDomxdzdyi44Ju1hH+GinL75jLP1yqi0q31cyALt6AAAAAAAAAAAAAAAAAACi9nnh/POXelKdFF7PPD+ecu9KXNMa2gdenak3XPaKAzUsQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGdbQ3D+OctdKk6KL2huH8c5a6VJ0aVxU6B16tiuvWeAOlowAAAAAAAAAAAAAAAAAAAC0AGH10AAAAjXHXZv42/envuXKqp+M73xBt6mmKaYpjqUwA9ngAAAAAAAAAAAAAAAAAAUXs88P55y70pToovZ54fzzl3pS5pjW0Dr07Um657RQGaliAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzraG4fxzlrpUnRRe0Nw/jnLXSpOjSuKnQOvVsV16zwB0tGAAAAAAAAAAAAAAAAAAAAWgAw+ugAAAEXgNwKUAAAAAAAAAAAAAAAAAAAAUXs88P55y70pToovZ54fzzl3pS5pjW0Dr07Um657RQGaliAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzraG4fxzlrpUnRRe0Nw/jnLXSpOjSuKnQOvVsV16zwB0tGAAAAAAAAAAAAAAAAAAAAWgAw+ugAAAEXgNwKUAAAAAAAAAAAAAAAAAAAAUXs88P55y70pToovZ54fzzl3pS5pjW0Dr07Um657RQGaliAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzraG4fxzlrpUnRRe0Nw/jnLXSpOjSuKnQOvVsV16zwB0tGAAAAAAAAAAAAAAAAAAAAWgAw+ugAAAEXgNwKUAAAAAAAAAAAAAAAAAAAAUXs88P55y70pToovZ54fzzl3pS5pjW0Dr07Um657RQGaliAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzraG4fxzlrpUnRRe0Nw/jnLXSpOjSuKnQOvVsV16zwB0tGAAAAAAAAAAAAAAAAAAAAWgAw+ugAAAEXgNwKUAAAAAAAAAAAAAAAAAAAAUXs88P55y70pToovZ54fzzl3pS5pjW0Dr07Um657RQGaliAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzraG4fxzlrpUnRRe0Nw/jnLXSpOjSuKnQOvVsV16zwB0tGAAAAAAAAAAAAAAAAAAAAWgAw+ugAAAEXgNwKUAAAAAAAAAAAAAAAAAAAAUXs88P55y70pToo3Z7pmPJ7E/wA2Luz/AOMOaY15/wDA69P8Sk3XPaGAzUsQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGdbQ3D+OctdKk6KL2huH8c5a6VJ0aVxU6B16tiuvWeAOlowAAAAAAAAAAAAAAAAAAAC0AGH10AAAAi8BuBSgAAAAAAAAAAAAAAAAAAACmvIdh5seTTLZmN03artyfjcqiPwiEyq50TgZyzSGU4Gqnza7OEtxXH+rzYmr8ZlyTG/eoowZYWHXVXl+FNM/wD1CXdI/VMu3AZ6TwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGdbQ3D+OctdKk6KL2huH8c5a6VJ0aVxU6B16tiuvWeAOlowAAAAAAAAAAAAAAAAAAAC0AGH10AAAAi8BuBSgAAAAAAAAAAAAAAAAAAAO60LlU53q/K8s83zqL2Ip9JH/xx9Kv/jEq2Yhs3ZFNzHY/UN6j6Fmn9msTMd9U7prn4Ruj+qW3s3Y1sKxe8L03Wieaxpya1XPP0yR74WN1pyUZe0AcwSQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGdbQ3D+OctdKk6KL2huH8c5a6VJ0aVxU6B16tiuvWeAOlowAAAAAAAAAAAAAAAAAAAC0AGH10AAAAi8BuBSgAAAAAAAAAAAAAAAAAD7YPD38Zi7OEw1uq7fvVxbt0U99VUzuiHxbFs+aQm7fnVePtfu7e+3gqao/iq7qrnw7Yj37/BR7osOWOA8H2l8terojtqnoj792WX0s6JrqyQ1bRWRWdOaZwWUWt1U2bf72uP8AHcntqn5zPw3O4BkG83i0vVtXb2s5aqpmZntmeeVrEREZIAHxeQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGdbQ3D+OctdKk6KL2huH8c5a6VJ0aVxU6B16tiuvWeAOlowAAAAAAAAAAAAAAAAAAAC0AGH10AAAAi8BuBSgAAAAAAAAAAAAAAAAPQ6G0nmerc2jB4GiaLFExOIxFUfQtU/3nwj2/ZvlGvl8sLlYVW94qimimMszP9/8AbzETM5IcryaaOxOrs8ps7q7eX2JirF3ojup/lj/VP4ds+xUGCwuHwWDs4TCWqbNizRFFuimN0U0xG6IcHS+RZfpzJrOV5ba8yzbjfVVP8Vyr21VT7Zn/AOu52bLe7Tdbabor5lp5rGjNj/lPfP0jm7ZmzsbLg47wB+MfYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABnW0Nw/jnLXSpOii9obh/HOWulSdGlcVOgderYrr1ngDpaMAAAAAAAAAAAAAAAAAAAAtABh9dAAAAIvAbgUoAAAAAAAAAAAAAAO203pzOtRYr0GUZfexMxO6quI3UUf7qp7IbRoXyQZbllVvG6huUZlio3TFimJ9BRPv39tfx3R7pfl90G7DBeAqJ4xXlr6qI56vl1e+cj62dlVX0M58nXk5zXVV2jF34rwWVRP0sRVT9K57rcT3/b3R7+5RGn8my7Icrt5bleGpsYe37I76p9tVU+2Z8XPoppoopoopimmmN0REboiPB+s6bqd2N+3Q2v8AV/TZR0UR0e+e2e/5RCwsrGmzjm6QB+SfUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABnW0Nw/jnLXSpOi0B0rcpjE/L1w4nxff8A6pnLv9705Orez2dqNa3fhKsuVF4tAfpuWbwXmeh8+J96LxaAcs3gvM9BxPvReLQDlm8F5noOJ96LxaAcs3gvM9BxPvReLQDlm8F5noOJ96LxaAcs3gvM9BxPvReLQDlm8F5noOJ96LxaAcs3gvM9BxPvReLQDlm8F5noOJ96LxaAcs3gvM9BxPvReLQDlm8F5noOJ94A4emgAAAIvFoDuHLN4LzPQhcT70Xi0A5ZvBeZ6Difei8WgHLN4LzPQcT70Xi0A5ZvBeZ6Difei8WgHLN4LzPQcT70Xv2ImZ3RG9Z48csvgvM9BxPvRxh8DjsRMRh8HiL0z3eZaqq6Q7nL9D6vx8xGH07mERPdN21NqJ+Ne6FXCJeMcV7qj+jdaaZ76pq/iKXmLpHXKfMm8i+pcVNNWY4rBZfRPfHnTdrj4U9n/JoGnPJDpbLJpu46L+a3o7f39Xm29/uop6TMtDH5DCeMLD2EImmq23lM9VH6frnfV9qbvRT1PnhcPh8Jh6MPhbFqxZojdRbt0RTTTHuiOyH0B+LqqmqZmZyy+wA8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//Z" alt="E"/>
+    <div><div class="sb-name">Exclusiva</div><div class="sb-tag">Gestão Empresarial</div></div>
+  </div>
+
+  <!-- Seletor empresa -->
+  <div class="cl-wrap">
+    <div class="cl-label">Empresa selecionada</div>
+    <div class="cl-selector" id="clSel">
+      <button class="cl-btn" id="clBtn" onclick="toggleCl()">
+        <span class="cl-dot" id="clDot"></span>
+        <span class="cl-name" id="clName">Selecionar empresa...</span>
+        <svg class="cl-arr" id="clArr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="cl-dd" id="clDd">
+        <div class="cl-search"><input type="text" placeholder="Buscar..." id="clSearch" oninput="filterCl(this.value)"/></div>
+        <div class="cl-list" id="clList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-sec">Principal</div>
+    <div class="ni on" id="ni-dash" onclick="go('dash')">
+      <svg class="ni-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span class="ni-lbl">Dashboard</span>
+    </div>
+
+    <div class="nav-sec">Módulos</div>
+
+    <!-- Financeiro -->
+    <div class="ni" id="ni-fin" onclick="toggleSub('fin')">
+      <svg class="ni-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span class="ni-lbl">Financeiro</span>
+      <svg class="ni-chev" id="chev-fin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="sub" id="sub-fin">
+      <div class="si" id="si-pagar" onclick="go('pagar')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Contas a Pagar
+      </div>
+      <div class="si" id="si-receber" onclick="go('receber')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        Contas a Receber
+      </div>
+    </div>
+
+    <!-- Cadastros -->
+    <div class="ni" id="ni-cad" onclick="toggleSub('cad')">
+      <svg class="ni-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      <span class="ni-lbl">Cadastros</span>
+      <svg class="ni-chev" id="chev-cad" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="sub" id="sub-cad">
+      <div class="si" id="si-empresas" onclick="go('empresas')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        Empresas Clientes
+      </div>
+      <div class="si" id="si-pessoas" onclick="go('pessoas')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Clientes / Fornecedores
+      </div>
+      <div class="si" id="si-colab" onclick="go('colab')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Colaboradores
+      </div>
+    </div>
+
+    <div class="ni" id="ni-usuarios" onclick="go('usuarios')">
+      <svg class="ni-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      <span class="ni-lbl">Usuários</span>
+    </div>
+
+    <div class="nav-sec" style="margin-top:10px">Em breve</div>
+    <div class="ni" style="opacity:.35;cursor:not-allowed"><svg class="ni-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span class="ni-lbl">RH</span><span class="ni-badge">Em breve</span></div>
+    <div class="ni" style="opacity:.35;cursor:not-allowed"><svg class="ni-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="ni-lbl">Relatórios</span><span class="ni-badge">Em breve</span></div>
+    <div class="ni" style="opacity:.35;cursor:not-allowed"><svg class="ni-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg><span class="ni-lbl">Comercial</span><span class="ni-badge">Em breve</span></div>
+  </nav>
+
+  <div class="sb-foot">
+    <div class="ua" id="userAv">EA</div>
+    <div class="ui"><div class="un" id="userName">Exclusiva</div><div class="ur" id="userRole">Administrador</div></div>
+    <button class="lo-btn" onclick="logout()" title="Sair">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+  </div>
+</aside>
+
+<!-- ═══ TOPBAR ═══ -->
+<header class="topbar">
+  <div>
+    <div class="pg-title" id="pgTitle">Dashboard</div>
+    <div class="pg-sub" id="pgSub">Visão geral da empresa selecionada</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="tb-chip" id="tbChip" style="display:none"><span class="tb-chip-dot"></span><span id="tbClientName"></span></div>
+    <button class="ico-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span class="notif">3</span></button>
+    <button class="ico-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+  </div>
+</header>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+
+<!-- SEM EMPRESA -->
+<div id="v-noClient">
+  <div class="empty" style="margin-top:80px">
+    <div class="empty-ico"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>
+    <div class="empty-t">Selecione uma empresa</div>
+    <div class="empty-d">Use o seletor no menu lateral esquerdo para escolher qual empresa deseja gerenciar.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="v-dash" class="hidden">
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-h"><div class="kpi-ico y"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><span class="kpi-tr dn">↓ 8%</span></div><div class="kpi-v" id="kv-pagar">R$ —</div><div class="kpi-l">Total a Pagar (mês)</div></div>
+    <div class="kpi"><div class="kpi-h"><div class="kpi-ico g"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><span class="kpi-tr up">↑ 12%</span></div><div class="kpi-v" id="kv-receber">R$ —</div><div class="kpi-l">Total a Receber (mês)</div></div>
+    <div class="kpi"><div class="kpi-h"><div class="kpi-ico r"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><span class="kpi-tr nt">0</span></div><div class="kpi-v" id="kv-inadim">—</div><div class="kpi-l">Inadimplentes</div></div>
+    <div class="kpi"><div class="kpi-h"><div class="kpi-ico p"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><span class="kpi-tr up">↑ 5%</span></div><div class="kpi-v" id="kv-semana">R$ —</div><div class="kpi-l">A vencer esta semana</div></div>
+  </div>
+  <div class="bot-grid">
+    <div class="card"><div class="card-h"><div><div class="card-t">Fluxo de Caixa</div><div class="card-s">Últimos 6 meses</div></div><button class="card-act">Exportar</button></div><div class="ch-wrap"><div class="ch-bars" id="chBars"></div><div class="ch-lbls" id="chLbls"></div></div><div class="ch-leg"><div class="leg-i"><div class="leg-d e"></div>Entradas</div><div class="leg-i"><div class="leg-d s"></div>Saídas</div></div></div>
+    <div class="card"><div class="card-h"><div><div class="card-t">Inadimplentes</div><div class="card-s">Cobranças em atraso</div></div><button class="card-act" onclick="go('receber')">Ver todos</button></div><div id="inadimList"><div class="empty" style="padding:28px"><div class="empty-d">Nenhum inadimplente 🎉</div></div></div></div>
+  </div>
+</div>
+
+<!-- CONTAS A PAGAR -->
+<div id="v-pagar" class="hidden">
+  <div class="mod-h"><div><div class="mod-t">Contas a <span>Pagar</span></div></div><div class="mod-acts"><button class="btn-s">↓ Exportar</button><button class="btn-p" onclick="abrirLancamento('pagar')">+ Nova Despesa</button></div></div>
+  <div class="filters"><select class="f-sel"><option>Todos os status</option><option>A Pagar</option><option>Aprovado</option><option>Pago</option><option>Atrasado</option></select><select class="f-sel"><option>Todas as categorias</option><option>Fixo</option><option>Variável</option></select><input class="f-inp" type="text" placeholder="Buscar fornecedor ou descrição..."/><input class="f-sel" type="date"/></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>ID</th><th>Fornecedor</th><th>Descrição</th><th>Vencimento</th><th>Valor</th><th>Status</th><th>Tipo</th><th></th></tr></thead><tbody id="tb-pagar"><tr><td colspan="8"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="empty-t">Nenhuma despesa</div><div class="empty-d">Clique em "Nova Despesa" para lançar.</div></div></td></tr></tbody></table></div>
+</div>
+
+<!-- CONTAS A RECEBER -->
+<div id="v-receber" class="hidden">
+  <div class="mod-h"><div><div class="mod-t">Contas a <span>Receber</span></div></div><div class="mod-acts"><button class="btn-s">↓ Exportar</button><button class="btn-p" onclick="abrirLancamento('receber')">+ Nova Fatura</button></div></div>
+  <div class="filters"><select class="f-sel"><option>Todos os status</option><option>Pendente</option><option>Pago</option><option>Atrasado</option><option>Negociação</option></select><input class="f-inp" type="text" placeholder="Buscar cliente ou fatura..."/><input class="f-sel" type="date"/><input class="f-sel" type="date"/></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Fatura</th><th>Cliente</th><th>Descrição</th><th>Emissão</th><th>Vencimento</th><th>Valor</th><th>Status</th><th></th></tr></thead><tbody id="tb-receber"><tr><td colspan="8"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="empty-t">Nenhuma fatura</div><div class="empty-d">Clique em "Nova Fatura" para lançar.</div></div></td></tr></tbody></table></div>
+</div>
+
+<!-- CADASTRO: EMPRESAS CLIENTES BOP -->
+<div id="v-empresas" class="hidden">
+  <div class="mod-h"><div><div class="mod-t">Empresas <span>Clientes</span></div><div style="font-size:13px;color:var(--gray-400);margin-top:4px">Empresas que você atende pela Exclusiva</div></div><div class="mod-acts"><button class="btn-p" onclick="abrirModalEmpresa(null)">+ Nova Empresa</button></div></div>
+  <div class="filters"><input class="f-inp" type="text" placeholder="Buscar por nome ou CNPJ..." oninput="filtrarEmpresas(this.value)"/><select class="f-sel" onchange="filtrarEmpresasStatus(this.value)"><option value="">Todos</option><option value="true">Ativos</option><option value="false">Inativos</option></select></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Empresa</th><th>CNPJ</th><th>Plano</th><th>Status</th><th>Desde</th><th></th></tr></thead><tbody id="tb-empresas"><tr><td colspan="6"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div><div class="empty-t">Carregando...</div></div></td></tr></tbody></table></div>
+</div>
+
+<!-- CADASTRO: PESSOAS (Clientes/Fornecedores) -->
+<div id="v-pessoas" class="hidden">
+  <div class="mod-h"><div><div class="mod-t">Clientes e <span>Fornecedores</span></div><div style="font-size:13px;color:var(--gray-400);margin-top:4px">Cadastro da empresa selecionada: <strong id="pessoasEmpresaNome">—</strong></div></div><div class="mod-acts"><button class="btn-s" onclick="abrirModalPessoa('fornecedor')">+ Fornecedor</button><button class="btn-p" onclick="abrirModalPessoa('cliente')">+ Cliente</button></div></div>
+  <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
+    <button class="tipo-filter on" onclick="filtrarTipoPessoa(this,'')">Todos</button>
+    <button class="tipo-filter" onclick="filtrarTipoPessoa(this,'cliente')">Clientes</button>
+    <button class="tipo-filter" onclick="filtrarTipoPessoa(this,'fornecedor')">Fornecedores</button>
+  </div>
+  <div class="filters"><input class="f-inp" type="text" placeholder="Buscar nome, CNPJ/CPF ou e-mail..." oninput="filtrarPessoas(this.value)"/></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Nome / Razão Social</th><th>Tipo</th><th>Documento</th><th>E-mail</th><th>Cidade</th><th>Status</th><th></th></tr></thead><tbody id="tb-pessoas"><tr><td colspan="7"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="empty-t">Carregando...</div></div></td></tr></tbody></table></div>
+</div>
+
+<!-- CADASTRO: COLABORADORES -->
+<div id="v-colab" class="hidden">
+  <div class="mod-h"><div><div class="mod-t"><span>Colaboradores</span></div><div style="font-size:13px;color:var(--gray-400);margin-top:4px">CLT e Prestadores PJ — empresa: <strong id="colabEmpresaNome">—</strong></div></div><div class="mod-acts"><button class="btn-s" onclick="abrirModalPessoa('pj')">+ Prestador PJ</button><button class="btn-p" onclick="abrirModalPessoa('clt')">+ Colaborador CLT</button></div></div>
+  <div style="display:flex;gap:7px;margin-bottom:12px">
+    <button class="tipo-filter on" onclick="filtrarTipoColab(this,'')">Todos</button>
+    <button class="tipo-filter" onclick="filtrarTipoColab(this,'clt')">CLT</button>
+    <button class="tipo-filter" onclick="filtrarTipoColab(this,'pj')">Prestadores PJ</button>
+  </div>
+  <div class="filters"><input class="f-inp" type="text" placeholder="Buscar por nome ou CPF..."/></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Nome</th><th>Vínculo</th><th>CPF</th><th>Cargo</th><th>Admissão</th><th>Salário</th><th>Status</th><th></th></tr></thead><tbody id="tb-colab"><tr><td colspan="8"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><div class="empty-t">Nenhum colaborador cadastrado</div><div class="empty-d">Use os botões acima para adicionar colaboradores CLT ou Prestadores PJ.</div></div></td></tr></tbody></table></div>
+</div>
+
+<!-- USUÁRIOS -->
+<div id="v-usuarios" class="hidden">
+  <div class="mod-h">
+    <div>
+      <div class="mod-t">Gestão de <span>Usuários</span></div>
+      <div style="font-size:13px;color:var(--gray-400);margin-top:4px">Crie acessos para sua equipe e para os clientes</div>
+    </div>
+    <div class="mod-acts">
+      <button class="btn-p" onclick="abrirModalUsuario()">+ Novo Usuário</button>
+    </div>
+  </div>
+  <div class="filters">
+    <select class="f-sel" onchange="filtrarUsuariosPerfil(this.value)">
+      <option value="">Todos os perfis</option>
+      <option value="admin">Admin (Exclusiva)</option>
+      <option value="gestao">Gestão (Equipe)</option>
+      <option value="exclusiva">Cliente (Leitura)</option>
+    </select>
+    <input class="f-inp" type="text" placeholder="Buscar por nome ou e-mail..." oninput="filtrarUsuariosNome(this.value)"/>
+  </div>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Usuário</th>
+          <th>E-mail</th>
+          <th>Perfil</th>
+          <th>Empresa Vinculada</th>
+          <th>Criado em</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tb-usuarios">
+        <tr><td colspan="7"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="empty-t">Carregando...</div></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</main><!-- fim main -->
+
+<!-- ═══ MODAL PESSOA ═══ -->
+<div class="modal-overlay" id="modalPessoa">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div><div class="modal-title" id="mpTitle">Novo Cadastro</div><div class="modal-sub" id="mpSub">Preencha os dados abaixo</div></div>
+      <button class="modal-close" onclick="fecharModalPessoa()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <!-- Seletor tipo -->
+    <div style="padding:14px 24px;background:var(--gray-100);border-bottom:1px solid var(--gray-300)">
+      <div style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gray-400);margin-bottom:9px">Tipo de cadastro</div>
+      <div class="tipo-btns">
+        <button class="tipo-btn on" data-t="cliente" onclick="mpSetTipo(this,'cliente')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Cliente</button>
+        <button class="tipo-btn" data-t="fornecedor" onclick="mpSetTipo(this,'fornecedor')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Fornecedor</button>
+        <button class="tipo-btn" data-t="clt" onclick="mpSetTipo(this,'clt')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>CLT</button>
+        <button class="tipo-btn" data-t="pj" onclick="mpSetTipo(this,'pj')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Prestador PJ</button>
+      </div>
+    </div>
+    <!-- Abas -->
+    <div class="mp-tabs">
+      <button class="mp-tab on" onclick="mpTab(this,'dados')">Dados Gerais</button>
+      <button class="mp-tab" onclick="mpTab(this,'endereco')">Endereço</button>
+      <button class="mp-tab" onclick="mpTab(this,'financeiro')">Financeiro</button>
+      <button class="mp-tab" id="mpTabExtra" onclick="mpTab(this,'extra')">Dados do Trabalho</button>
+    </div>
+    <!-- Alert -->
+    <div class="mp-alert" id="mpAlert"></div>
+    <!-- Conteúdo -->
+    <div class="mp-body">
+
+      <!-- ABA DADOS -->
+      <div id="mpt-dados">
+        <div class="cnpj-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#671e75" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:5px" id="mpDocLabel">CNPJ — busca automática na Receita Federal</div>
+            <div class="cnpj-row">
+              <input id="mp-doc" type="text" class="mp-i" style="flex:1" placeholder="00.000.000/0001-00" oninput="mpMaskDoc(this)" onblur="mpFetchDoc(this.value)"/>
+              <button onclick="mpFetchDoc(document.getElementById('mp-doc').value)" style="background:var(--purple);color:#fff;border:none;border-radius:7px;padding:9px 14px;font-family:Barlow,sans-serif;font-size:12px;font-weight:700;cursor:pointer" id="mpBtnBuscar">Buscar</button>
+            </div>
+            <div id="mpDocStatus" style="font-size:11px;margin-top:4px;display:none"></div>
+          </div>
+        </div>
+        <div class="mp-grid2">
+          <div class="mp-f" style="grid-column:1/-1"><label class="mp-l">Nome / Razão Social *</label><input id="mp-nome" type="text" class="mp-i" placeholder="Nome completo ou razão social"/></div>
+          <div class="mp-f"><label class="mp-l">Nome Fantasia</label><input id="mp-fantasia" type="text" class="mp-i" placeholder="Nome fantasia"/></div>
+          <div class="mp-f"><label class="mp-l">E-mail</label><input id="mp-email" type="email" class="mp-i" placeholder="email@empresa.com.br"/></div>
+          <div class="mp-f"><label class="mp-l">Telefone</label><input id="mp-tel" type="text" class="mp-i" placeholder="(00) 00000-0000" oninput="mpMaskTel(this)"/></div>
+          <div class="mp-f"><label class="mp-l">WhatsApp</label><input id="mp-wpp" type="text" class="mp-i" placeholder="(00) 00000-0000" oninput="mpMaskTel(this)"/></div>
+        </div>
+        <div id="mpFiscalWrap" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-200)">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--gray-400);margin-bottom:10px">Dados Fiscais (preenchidos automaticamente)</div>
+          <div class="mp-grid3">
+            <div class="mp-f"><label class="mp-l">Situação</label><input id="mp-sit" type="text" class="mp-i" readonly style="background:var(--gray-100)"/></div>
+            <div class="mp-f"><label class="mp-l">Porte</label><input id="mp-porte" type="text" class="mp-i" readonly style="background:var(--gray-100)"/></div>
+            <div class="mp-f"><label class="mp-l">Regime Tributário</label><select id="mp-regime" class="mp-i"><option value="">Selecionar</option><option value="simples">Simples Nacional</option><option value="lucro_presumido">Lucro Presumido</option><option value="lucro_real">Lucro Real</option><option value="mei">MEI</option></select></div>
+            <div class="mp-f" style="grid-column:1/-1"><label class="mp-l">CNAE</label><input id="mp-cnae" type="text" class="mp-i" readonly style="background:var(--gray-100);font-size:11px"/></div>
+          </div>
+        </div>
+        <div id="mpPFWrap" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-200)">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--gray-400);margin-bottom:10px">Dados Pessoais</div>
+          <div class="mp-grid3">
+            <div class="mp-f"><label class="mp-l">Nascimento</label><input id="mp-nasc" type="date" class="mp-i"/></div>
+            <div class="mp-f"><label class="mp-l">Sexo</label><select id="mp-sexo" class="mp-i"><option value="">Selecionar</option><option value="masculino">Masculino</option><option value="feminino">Feminino</option><option value="outro">Outro</option></select></div>
+            <div class="mp-f"><label class="mp-l">Estado Civil</label><select id="mp-ecivil" class="mp-i"><option value="">Selecionar</option><option value="solteiro">Solteiro(a)</option><option value="casado">Casado(a)</option><option value="divorciado">Divorciado(a)</option><option value="viuvo">Viúvo(a)</option></select></div>
+            <div class="mp-f"><label class="mp-l">RG</label><input id="mp-rg" type="text" class="mp-i" placeholder="000.000.000-0"/></div>
+            <div class="mp-f"><label class="mp-l">Órgão / UF</label><input id="mp-rgorg" type="text" class="mp-i" placeholder="SSP/SP"/></div>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-200)">
+          <div class="mp-f"><label class="mp-l">Observações internas</label><textarea id="mp-obs" class="mp-i" rows="2" placeholder="Notas internas — não visíveis ao cliente"></textarea></div>
+          <div class="mp-f" style="margin-top:10px"><label class="mp-l">Tags (separar por vírgula)</label><input id="mp-tags" type="text" class="mp-i" placeholder="vip, clinica, parceiro..."/></div>
+        </div>
+      </div>
+
+      <!-- ABA ENDEREÇO -->
+      <div id="mpt-endereco" style="display:none">
+        <div style="display:flex;align-items:center;gap:8px;background:var(--gray-100);border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:13px;color:var(--gray-600)"><input type="checkbox" id="mpCepAuto" checked style="accent-color:var(--purple)"/><label for="mpCepAuto" style="cursor:pointer">Preencher endereço automaticamente pelo CEP (ViaCEP)</label></div>
+        <div class="mp-grid3">
+          <div class="mp-f"><label class="mp-l">CEP</label><input id="mp-cep" type="text" class="mp-i" placeholder="00000-000" maxlength="9" oninput="mpMaskCEP(this)" onblur="mpFetchCEP(this.value)"/></div>
+          <div class="mp-f" style="grid-column:span 2"><label class="mp-l">Logradouro</label><input id="mp-rua" type="text" class="mp-i" placeholder="Rua, Av, Alameda..."/></div>
+          <div class="mp-f"><label class="mp-l">Número</label><input id="mp-num" type="text" class="mp-i" placeholder="123"/></div>
+          <div class="mp-f" style="grid-column:span 2"><label class="mp-l">Complemento</label><input id="mp-comp" type="text" class="mp-i" placeholder="Sala 201, Apto..."/></div>
+          <div class="mp-f"><label class="mp-l">Bairro</label><input id="mp-bairro" type="text" class="mp-i"/></div>
+          <div class="mp-f"><label class="mp-l">Cidade</label><input id="mp-cidade" type="text" class="mp-i"/></div>
+          <div class="mp-f"><label class="mp-l">UF</label><select id="mp-uf" class="mp-i"><option value="">UF</option><option>AC</option><option>AL</option><option>AM</option><option>AP</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MG</option><option>MS</option><option>MT</option><option>PA</option><option>PB</option><option>PE</option><option>PI</option><option>PR</option><option>RJ</option><option>RN</option><option>RO</option><option>RR</option><option>RS</option><option>SC</option><option>SE</option><option>SP</option><option>TO</option></select></div>
+        </div>
+      </div>
+
+      <!-- ABA FINANCEIRO -->
+      <div id="mpt-financeiro" style="display:none">
+        <div style="font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--gray-400);margin-bottom:10px">Dados Bancários / PIX</div>
+        <div class="mp-grid3">
+          <div class="mp-f"><label class="mp-l">Tipo de Chave PIX</label><select id="mp-pixT" class="mp-i"><option value="">Selecionar</option><option value="cpf">CPF</option><option value="cnpj">CNPJ</option><option value="email">E-mail</option><option value="telefone">Telefone</option><option value="aleatoria">Aleatória</option></select></div>
+          <div class="mp-f" style="grid-column:span 2"><label class="mp-l">Chave PIX</label><input id="mp-pix" type="text" class="mp-i" placeholder="Chave PIX"/></div>
+          <div class="mp-f"><label class="mp-l">Banco</label><input id="mp-banco" type="text" class="mp-i" placeholder="Ex: Bradesco"/></div>
+          <div class="mp-f"><label class="mp-l">Agência</label><input id="mp-ag" type="text" class="mp-i" placeholder="0000"/></div>
+          <div class="mp-f"><label class="mp-l">Conta</label><input id="mp-conta" type="text" class="mp-i" placeholder="00000-0"/></div>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-200)">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--gray-400);margin-bottom:10px">Condições Comerciais</div>
+          <div class="mp-grid3">
+            <div class="mp-f"><label class="mp-l">Limite de Crédito</label><input id="mp-limite" type="text" class="mp-i" placeholder="R$ 0,00" oninput="mpMaskMoeda(this)"/></div>
+            <div class="mp-f"><label class="mp-l">Prazo Pagamento (dias)</label><input id="mp-prazo" type="number" class="mp-i" placeholder="30" min="0"/></div>
+            <div class="mp-f"><label class="mp-l">Condição</label><select id="mp-cond" class="mp-i"><option value="">Selecionar</option><option value="pix_vista">PIX à Vista</option><option value="boleto_30">Boleto 30d</option><option value="boleto_60">Boleto 60d</option><option value="cartao">Cartão</option></select></div>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-200)">
+          <div style="background:var(--purple-pale);border:1px solid rgba(103,30,117,.12);border-radius:8px;padding:11px 13px;margin-bottom:10px;font-size:12px;color:var(--purple);line-height:1.6">Se informado, o cliente recebe um convite por e-mail para acessar a plataforma com visualização dos próprios dados.</div>
+          <div class="mp-f"><label class="mp-l">E-mail de acesso do cliente (opcional)</label><input id="mp-emailacesso" type="email" class="mp-i" placeholder="cliente@empresa.com.br"/></div>
+        </div>
+      </div>
+
+      <!-- ABA EXTRA (trabalho/fornecimento) -->
+      <div id="mpt-extra" style="display:none">
+        <div id="mpExtraCLT">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--gray-400);margin-bottom:10px">Dados do Vínculo Empregatício</div>
+          <div class="mp-grid3">
+            <div class="mp-f"><label class="mp-l">Cargo / Função</label><input id="mp-cargo" type="text" class="mp-i" placeholder="Assistente, Gerente..."/></div>
+            <div class="mp-f"><label class="mp-l">Departamento</label><input id="mp-depto" type="text" class="mp-i" placeholder="Administrativo, TI..."/></div>
+            <div class="mp-f"><label class="mp-l">Carga Horária (h/sem)</label><input id="mp-horas" type="number" class="mp-i" placeholder="44" min="0" max="44"/></div>
+            <div class="mp-f"><label class="mp-l">Admissão</label><input id="mp-admissao" type="date" class="mp-i"/></div>
+            <div class="mp-f"><label class="mp-l">Salário (R$)</label><input id="mp-salario" type="text" class="mp-i" placeholder="R$ 0,00" oninput="mpMaskMoeda(this)"/></div>
+            <div class="mp-f"><label class="mp-l">PIS / PASEP</label><input id="mp-pis" type="text" class="mp-i" placeholder="000.00000.00-0"/></div>
+            <div class="mp-f"><label class="mp-l">CTPS — Nº</label><input id="mp-ctps" type="text" class="mp-i" placeholder="Número"/></div>
+            <div class="mp-f"><label class="mp-l">CTPS — Série</label><input id="mp-ctpss" type="text" class="mp-i" placeholder="Série"/></div>
+          </div>
+        </div>
+        <div id="mpExtraForn" style="display:none">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--gray-400);margin-bottom:10px">Dados de Fornecimento</div>
+          <div class="mp-grid2">
+            <div class="mp-f"><label class="mp-l">Categoria</label><select id="mp-catforn" class="mp-i"><option value="">Selecionar</option><option>Serviços de TI</option><option>Limpeza</option><option>Material Escritório</option><option>Alimentação</option><option>Logística</option><option>Marketing</option><option>Consultoria</option><option>Outros</option></select></div>
+            <div class="mp-f"><label class="mp-l">Avaliação</label><select id="mp-aval" class="mp-i"><option value="">Selecionar</option><option value="5">⭐⭐⭐⭐⭐ Excelente</option><option value="4">⭐⭐⭐⭐ Bom</option><option value="3">⭐⭐⭐ Regular</option><option value="2">⭐⭐ Ruim</option><option value="1">⭐ Péssimo</option></select></div>
+            <div class="mp-f"><label class="mp-l">Website</label><input id="mp-site" type="url" class="mp-i" placeholder="https://empresa.com.br"/></div>
+            <div class="mp-f"><label class="mp-l">Instagram</label><input id="mp-ig" type="text" class="mp-i" placeholder="@empresa"/></div>
+          </div>
+        </div>
+        <div id="mpExtraPJ" style="display:none">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--gray-400);margin-bottom:10px">Contrato PJ</div>
+          <div class="mp-grid3">
+            <div class="mp-f"><label class="mp-l">Cargo / Função</label><input id="mp-cargopj" type="text" class="mp-i" placeholder="Desenvolvedor, Designer..."/></div>
+            <div class="mp-f"><label class="mp-l">Valor Hora (R$)</label><input id="mp-hora" type="text" class="mp-i" placeholder="R$ 0,00" oninput="mpMaskMoeda(this)"/></div>
+            <div class="mp-f"><label class="mp-l">Início do Contrato</label><input id="mp-inicio" type="date" class="mp-i"/></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- fim mp-body -->
+    <div class="modal-foot">
+      <div class="modal-note">* Campos obrigatórios</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="fecharModalPessoa()" style="background:var(--white);border:1px solid var(--gray-300);border-radius:8px;padding:9px 18px;font-family:Barlow,sans-serif;font-size:13px;font-weight:600;color:var(--gray-600);cursor:pointer">Cancelar</button>
+        <button onclick="mpSalvar()" id="mpBtnSalvar" style="background:var(--purple);border:none;border-radius:8px;padding:9px 22px;font-family:Barlow,sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;transition:background .2s">Salvar Cadastro</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL EMPRESA ═══ -->
+<div class="modal-overlay" id="modalEmpresa">
+  <div class="modal-box" style="max-width:740px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="empTitle">Nova Empresa Cliente</div>
+        <div class="modal-sub">Preencha os dados da empresa que você atende</div>
+      </div>
+      <button class="modal-close" onclick="fecharModalEmpresa()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Abas -->
+    <div class="mp-tabs">
+      <button class="mp-tab on" onclick="empTab(this,'dados')">Dados Gerais</button>
+      <button class="mp-tab" onclick="empTab(this,'endereco')">Endereço</button>
+      <button class="mp-tab" onclick="empTab(this,'contatos')">Contatos</button>
+      <button class="mp-tab" onclick="empTab(this,'anexos')">Anexos</button>
+    </div>
+
+    <div class="mp-alert" id="empAlert"></div>
+
+    <div class="mp-body">
+
+      <!-- ABA DADOS GERAIS -->
+      <div id="empt-dados">
+        <!-- Busca CNPJ -->
+        <div class="cnpj-box">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#671e75" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:5px">CNPJ — busca automática na Receita Federal</div>
+            <div class="cnpj-row">
+              <input id="emp-cnpj" type="text" class="mp-i" style="flex:1" placeholder="00.000.000/0001-00" oninput="empMaskCNPJ(this)" onblur="empFetchCNPJ(this.value)"/>
+              <button onclick="empFetchCNPJ(document.getElementById('emp-cnpj').value)" style="background:var(--purple);color:#fff;border:none;border-radius:7px;padding:9px 14px;font-family:Barlow,sans-serif;font-size:12px;font-weight:700;cursor:pointer" id="empBtnBuscar">Buscar</button>
+            </div>
+            <div id="empDocStatus" style="font-size:11px;margin-top:4px;display:none"></div>
+          </div>
+        </div>
+
+        <div class="mp-grid2">
+          <div class="mp-f" style="grid-column:1/-1">
+            <label class="mp-l">Razão Social *</label>
+            <input id="emp-razao" type="text" class="mp-i" placeholder="Nome jurídico completo"/>
+          </div>
+          <div class="mp-f">
+            <label class="mp-l">Nome Fantasia <span style="font-size:9px;color:var(--purple);font-weight:700">(aparece no seletor)</span></label>
+            <input id="emp-fantasia" type="text" class="mp-i" placeholder="Nome que aparece no sistema"/>
+          </div>
+          <div class="mp-f">
+            <label class="mp-l">Plano</label>
+            <select id="emp-plano" class="mp-i">
+              <option value="basico">Básico</option>
+              <option value="intermediario">Intermediário</option>
+              <option value="premium">Premium</option>
+            </select>
+          </div>
+          <div class="mp-f">
+            <label class="mp-l">E-mail da Empresa</label>
+            <input id="emp-email" type="email" class="mp-i" placeholder="contato@empresa.com.br"/>
+          </div>
+          <div class="mp-f">
+            <label class="mp-l">Telefone</label>
+            <input id="emp-tel" type="text" class="mp-i" placeholder="(00) 00000-0000" oninput="empMaskTel(this)"/>
+          </div>
+          <div class="mp-f">
+            <label class="mp-l">Website</label>
+            <input id="emp-site" type="url" class="mp-i" placeholder="https://empresa.com.br"/>
+          </div>
+          <div class="mp-f">
+            <label class="mp-l">Instagram</label>
+            <input id="emp-ig" type="text" class="mp-i" placeholder="@empresa"/>
+          </div>
+        </div>
+
+        <!-- Dados Fiscais (Receita) -->
+        <div id="empFiscalWrap" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-200)">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--gray-400);margin-bottom:10px">Dados Fiscais — preenchidos automaticamente</div>
+          <div class="mp-grid3">
+            <div class="mp-f"><label class="mp-l">Situação Cadastral</label><input id="emp-sit" type="text" class="mp-i" readonly style="background:var(--gray-100)"/></div>
+            <div class="mp-f"><label class="mp-l">Porte</label><input id="emp-porte" type="text" class="mp-i" readonly style="background:var(--gray-100)"/></div>
+            <div class="mp-f"><label class="mp-l">Data de Abertura</label><input id="emp-abertura" type="text" class="mp-i" readonly style="background:var(--gray-100)"/></div>
+            <div class="mp-f" style="grid-column:1/-1"><label class="mp-l">CNAE Principal</label><input id="emp-cnae" type="text" class="mp-i" readonly style="background:var(--gray-100);font-size:11px"/></div>
+          </div>
+        </div>
+
+        <!-- Acesso -->
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-200)">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--gray-400);margin-bottom:8px">Acesso à Plataforma</div>
+          <div style="background:var(--purple-pale);border:1px solid rgba(103,30,117,.12);border-radius:8px;padding:11px 13px;margin-bottom:10px;font-size:12px;color:var(--purple);line-height:1.6">Se informado, o cliente recebe um convite por e-mail para criar senha e visualizar os próprios dados (somente leitura).</div>
+          <div class="mp-f"><label class="mp-l">E-mail de acesso do cliente (opcional)</label><input id="emp-emailacesso" type="email" class="mp-i" placeholder="cliente@empresa.com.br"/></div>
+        </div>
+
+        <!-- Observações -->
+        <div style="margin-top:14px">
+          <div class="mp-f"><label class="mp-l">Observações internas</label><textarea id="emp-obs" class="mp-i" rows="2" placeholder="Notas internas sobre este cliente..."></textarea></div>
+        </div>
+      </div>
+
+      <!-- ABA ENDEREÇO -->
+      <div id="empt-endereco" style="display:none">
+        <div style="display:flex;align-items:center;gap:8px;background:var(--gray-100);border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:13px;color:var(--gray-600)">
+          <input type="checkbox" id="empCepAuto" checked style="accent-color:var(--purple)"/>
+          <label for="empCepAuto" style="cursor:pointer">Preencher automaticamente pelo CEP (ViaCEP)</label>
+        </div>
+        <div class="mp-grid3">
+          <div class="mp-f"><label class="mp-l">CEP</label><input id="emp-cep" type="text" class="mp-i" placeholder="00000-000" maxlength="9" oninput="empMaskCEP(this)" onblur="empFetchCEP(this.value)"/></div>
+          <div class="mp-f" style="grid-column:span 2"><label class="mp-l">Logradouro</label><input id="emp-rua" type="text" class="mp-i" placeholder="Rua, Av, Alameda..."/></div>
+          <div class="mp-f"><label class="mp-l">Número</label><input id="emp-num" type="text" class="mp-i" placeholder="123"/></div>
+          <div class="mp-f" style="grid-column:span 2"><label class="mp-l">Complemento</label><input id="emp-comp" type="text" class="mp-i" placeholder="Sala 201, Apto..."/></div>
+          <div class="mp-f"><label class="mp-l">Bairro</label><input id="emp-bairro" type="text" class="mp-i"/></div>
+          <div class="mp-f"><label class="mp-l">Cidade</label><input id="emp-cidade" type="text" class="mp-i"/></div>
+          <div class="mp-f"><label class="mp-l">UF</label>
+            <select id="emp-uf" class="mp-i"><option value="">UF</option><option>AC</option><option>AL</option><option>AM</option><option>AP</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MG</option><option>MS</option><option>MT</option><option>PA</option><option>PB</option><option>PE</option><option>PI</option><option>PR</option><option>RJ</option><option>RN</option><option>RO</option><option>RR</option><option>RS</option><option>SC</option><option>SE</option><option>SP</option><option>TO</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA CONTATOS -->
+      <div id="empt-contatos" style="display:none">
+        <div style="font-size:13px;color:var(--gray-600);margin-bottom:14px;line-height:1.6">Cadastre os contatos responsáveis desta empresa. Eles serão usados nas cobranças e comunicações.</div>
+        <div id="empContatosList"></div>
+        <button onclick="empAdicionarContato()" style="background:var(--purple-pale);color:var(--purple);border:1.5px dashed rgba(103,30,117,.3);border-radius:8px;padding:10px 16px;font-family:Barlow,sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;transition:all .15s;margin-top:8px" onmouseover="this.style.background='var(--purple-lt)'" onmouseout="this.style.background='var(--purple-pale)'">
+          + Adicionar Contato
+        </button>
+      </div>
+
+      <!-- ABA ANEXOS -->
+      <div id="empt-anexos" style="display:none">
+        <div style="background:var(--gray-100);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--gray-600);line-height:1.6">
+          <strong>Arquivos permitidos:</strong> PDF, JPEG, PNG, WEBP<br>
+          <strong>Tamanho máximo:</strong> 50 MB por arquivo
+        </div>
+        <div id="empAnexosList"></div>
+        <div style="border:2px dashed var(--gray-300);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;margin-top:8px" id="empDropZone"
+          onclick="document.getElementById('empFileInput').click()"
+          ondragover="event.preventDefault();this.style.borderColor='var(--purple)';this.style.background='var(--purple-pale)'"
+          ondragleave="this.style.borderColor='var(--gray-300)';this.style.background='transparent'"
+          ondrop="empHandleDrop(event)">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:8px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div style="font-size:13px;font-weight:600;color:var(--gray-600)">Clique para selecionar ou arraste o arquivo</div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:4px">PDF, JPG, PNG, WEBP — máx. 50 MB</div>
+          <input type="file" id="empFileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none" onchange="empHandleFiles(this.files)"/>
+        </div>
+      </div>
+
+    </div><!-- fim mp-body -->
+
+    <div class="modal-foot">
+      <div class="modal-note">* Campos obrigatórios</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="fecharModalEmpresa()" style="background:var(--white);border:1px solid var(--gray-300);border-radius:8px;padding:9px 18px;font-family:Barlow,sans-serif;font-size:13px;font-weight:600;color:var(--gray-600);cursor:pointer">Cancelar</button>
+        <button onclick="empSalvar()" id="empBtnSalvar" style="background:var(--purple);border:none;border-radius:8px;padding:9px 22px;font-family:Barlow,sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;transition:background .2s">Salvar Empresa</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SB = "https://ckfuwprixltrqzrupztc.supabase.co"
+const AK = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNrZnV3cHJpeGx0cnF6cnVwenRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NTY3MjMsImV4cCI6MjA5MTMzMjcyM30.KNtaU2RctftGfx6vwZAal9WcXB_YbTI8PckFlllveLg"
+const OP_ID = "7f961078-3dd0-479d-bea4-ac35f31b557d"
+
+const APP = { session: null, empresa: null, empresas: [], pessoas: [], view: 'noClient' }
+
+// ── AUTH ──────────────────────────────────────────────
+function initAuth(){
+  try{
+    const s = JSON.parse(localStorage.getItem("ea_sessao")||"null")
+    if(!s?.access_token||s.expires_at<Date.now()){ window.location.href='/index.html'; return }
+    APP.session = s
+    const email = s.user?.email||""
+    const nome = email.split("@")[0]
+    document.getElementById("userName").textContent = nome.charAt(0).toUpperCase()+nome.slice(1)
+    document.getElementById("userAv").textContent = nome.substring(0,2).toUpperCase()
+    loadEmpresas()
+  } catch { window.location.href='/index.html' }
+}
+
+function hdrs(){ return { "apikey":AK, "Authorization":"Bearer "+APP.session.access_token } }
+function hdrsJson(){ return { ...hdrs(), "Content-Type":"application/json", "Prefer":"return=representation" } }
+function fmt(v){ return parseFloat(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2}) }
+function fmtDate(d){ return d ? new Date(d+"T00:00:00").toLocaleDateString("pt-BR") : "—" }
+
+// ── EMPRESAS / SELETOR ────────────────────────────────
+async function loadEmpresas(){
+  try{
+    const r = await fetch(SB+"/rest/v1/clientes_bop?select=id,nome_empresa,cnpj,ativo,plano,criado_em&ativo=eq.true&order=nome_empresa", { headers: hdrs() })
+    if(r.ok){ APP.empresas = await r.json() }
+    else { APP.empresas = [
+      {id:"60f1340c-8724-4fb8-b459-9dfcc427a815",nome_empresa:"Cliente BOP 1",ativo:true,plano:"basico"},
+      {id:"771fe4e9-fd12-4df5-b1b1-ec053d385b54",nome_empresa:"Cliente BOP 2",ativo:true,plano:"basico"},
+      {id:"b08f8edf-7f99-4876-85df-4f0d898b94a3",nome_empresa:"Cliente BOP 3",ativo:true,plano:"basico"},
+      {id:"83c650e6-c316-41e8-9a01-f9f3b9779015",nome_empresa:"Cliente BOP 4",ativo:true,plano:"basico"},
+      {id:"b8903fba-2413-4002-bd7a-cfacb82acca0",nome_empresa:"Cliente BOP 5",ativo:true,plano:"basico"}
+    ]}
+    renderCl(APP.empresas)
+  } catch(e){ console.log(e) }
+}
+
+function renderCl(list){
+  const el = document.getElementById("clList")
+  if(!list.length){ el.innerHTML='<div class="cl-none">Nenhuma empresa</div>'; return }
+  el.innerHTML = list.map(c=>`<div class="cl-item ${APP.empresa?.id===c.id?'on':''}" onclick="selectEmpresa('${c.id}','${c.nome_empresa}')"><span class="cl-item-dot"></span>${c.nome_empresa}</div>`).join("")
+}
+
+function toggleCl(){
+  const dd=document.getElementById("clDd"), arr=document.getElementById("clArr"), btn=document.getElementById("clBtn")
+  const isOn=dd.classList.contains("on")
+  dd.classList.toggle("on",!isOn); arr.classList.toggle("on",!isOn); btn.classList.toggle("on",!isOn)
+  if(!isOn) document.getElementById("clSearch").focus()
+}
+
+function filterCl(q){
+  renderCl(APP.empresas.filter(c=>c.nome_empresa.toLowerCase().includes(q.toLowerCase())))
+}
+
+document.addEventListener("click", e=>{
+  if(!document.getElementById("clSel").contains(e.target)){
+    document.getElementById("clDd").classList.remove("on")
+    document.getElementById("clArr").classList.remove("on")
+    document.getElementById("clBtn").classList.remove("on")
+  }
+})
+
+function selectEmpresa(id, nome){
+  APP.empresa = { id, nome_empresa: nome }
+  document.getElementById("clName").textContent = nome
+  document.getElementById("clDot").style.display = "block"
+  document.getElementById("clDd").classList.remove("on")
+  document.getElementById("clArr").classList.remove("on")
+  document.getElementById("clBtn").classList.remove("on")
+  document.getElementById("clSearch").value = ""
+  document.getElementById("tbChip").style.display = "flex"
+  document.getElementById("tbClientName").textContent = nome
+  renderCl(APP.empresas)
+  go("dash")
+}
+
+// ── NAVEGAÇÃO ─────────────────────────────────────────
+const VIEWS = { dash:"Dashboard", pagar:"Contas a Pagar", receber:"Contas a Receber", empresas:"Empresas Clientes", pessoas:"Clientes e Fornecedores", colab:"Colaboradores", usuarios:"Usuários" }
+const SUBS  = { dash:"Principal", pagar:"Módulo Financeiro", receber:"Módulo Financeiro", empresas:"Cadastros → Empresas que você atende", pessoas:"Cadastros → Contatos da empresa selecionada", colab:"Cadastros → CLT e Prestadores PJ", usuarios:"Controle de Acesso → Equipe e Clientes" }
+
+function go(v){
+  if(!APP.empresa && v!=="noClient" && v!=="empresas"){ showNoClient(); return }
+  APP.view = v
+  document.querySelectorAll("[id^='v-']").forEach(el=>el.classList.add("hidden"))
+  const el = document.getElementById("v-"+v)
+  if(el) el.classList.remove("hidden")
+  else { document.getElementById("v-noClient").classList.remove("hidden") }
+  document.querySelectorAll(".ni,.si").forEach(i=>i.classList.remove("on"))
+  const ni = document.getElementById("ni-"+v)||document.getElementById("si-"+v)
+  if(ni) ni.classList.add("on")
+  document.getElementById("pgTitle").textContent = VIEWS[v]||v
+  document.getElementById("pgSub").textContent = SUBS[v]||""
+  // Submenus
+  if(v==="pagar"||v==="receber"){ openSub("fin"); document.getElementById("ni-fin").classList.add("on") }
+  if(v==="empresas"||v==="pessoas"||v==="colab"){ openSub("cad"); document.getElementById("ni-cad").classList.add("on") }
+  // Carrega dados
+  if(v==="dash") loadDash()
+  if(v==="pagar") loadPagar()
+  if(v==="receber") loadReceber()
+  if(v==="empresas") loadEmpresasTabela()
+  if(v==="pessoas"){ document.getElementById("pessoasEmpresaNome").textContent=APP.empresa?.nome_empresa||"—"; loadPessoas() }
+  if(v==="colab"){ document.getElementById("colabEmpresaNome").textContent=APP.empresa?.nome_empresa||"—"; loadColab() }
+  if(v==="usuarios") loadUsuarios()
+}
+
+function showNoClient(){
+  document.querySelectorAll("[id^='v-']").forEach(el=>el.classList.add("hidden"))
+  document.getElementById("v-noClient").classList.remove("hidden")
+}
+
+function toggleSub(id){
+  const s=document.getElementById("sub-"+id), c=document.getElementById("chev-"+id)
+  s.classList.toggle("on"); if(c) c.classList.toggle("on")
+}
+function openSub(id){
+  document.getElementById("sub-"+id).classList.add("on")
+  const c=document.getElementById("chev-"+id); if(c) c.classList.add("on")
+}
+
+// ── DASHBOARD ─────────────────────────────────────────
+async function loadDash(){
+  if(!APP.empresa) return
+  const id = APP.empresa.id
+  try{
+    const [rP,rR,rS] = await Promise.all([
+      fetch(`${SB}/rest/v1/contas_pagar?select=valor&cliente_bop_id=eq.${id}&status=in.(a_pagar,aprovado,atrasado)`, { headers:hdrs() }),
+      fetch(`${SB}/rest/v1/contas_receber?select=valor_final,status&cliente_bop_id=eq.${id}&status=in.(pendente,atrasado)`, { headers:hdrs() }),
+      fetch(`${SB}/functions/v1/contas-pagar/semana?cliente_bop_id=${id}`, { headers:hdrs() })
+    ])
+    if(rP.ok){ const d=await rP.json(); document.getElementById("kv-pagar").textContent="R$ "+fmt(d.reduce((s,r)=>s+parseFloat(r.valor||0),0)) }
+    if(rR.ok){ const d=await rR.json(); const tot=d.reduce((s,r)=>s+parseFloat(r.valor_final||0),0); const at=d.filter(r=>r.status==="atrasado").length; document.getElementById("kv-receber").textContent="R$ "+fmt(tot); document.getElementById("kv-inadim").textContent=at }
+    if(rS.ok){ const d=await rS.json(); document.getElementById("kv-semana").textContent="R$ "+fmt(d.total||0) }
+  } catch(e){}
+  renderChart()
+}
+
+function renderChart(){
+  const meses=["Nov","Dez","Jan","Fev","Mar","Abr"]
+  const ent=[12000,18000,9000,22000,15000,19000], sai=[8000,14000,11000,16000,12000,14000]
+  const mx=Math.max(...ent,...sai)
+  document.getElementById("chBars").innerHTML=meses.map((_,i)=>`<div class="bar-g"><div class="bar e" style="height:${(ent[i]/mx)*100}%" title="Entrada: R$ ${fmt(ent[i])}"></div><div class="bar s" style="height:${(sai[i]/mx)*100}%" title="Saída: R$ ${fmt(sai[i])}"></div></div>`).join("")
+  document.getElementById("chLbls").innerHTML=meses.map(m=>`<div class="ch-lbl">${m}</div>`).join("")
+}
+
+// ── FINANCEIRO ────────────────────────────────────────
+function pillStatus(s){
+  const m={a_pagar:["pe","A Pagar"],pago:["pa","Pago"],aprovado:["pa","Aprovado"],atrasado:["at","Atrasado"],cancelado:["nt","Cancelado"],pendente:["pe","Pendente"],negociacao:["vh","Negociação"]}
+  const [cls,lbl]=m[s]||["nt",s||"—"]
+  return `<span class="pill ${cls}">${lbl}</span>`
+}
+
+async function loadPagar(){
+  if(!APP.empresa) return
+  try{
+    const r = await fetch(`${SB}/rest/v1/contas_pagar?select=id_despesa,valor,data_vencimento,status,descricao,tipo_custo,pessoas(nome,razao_social)&cliente_bop_id=eq.${APP.empresa.id}&order=data_vencimento`, { headers:hdrs() })
+    if(!r.ok) return
+    const d = await r.json()
+    const tb = document.getElementById("tb-pagar")
+    if(!d.length){ tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="empty-t">Nenhuma despesa</div><div class="empty-d">Clique em "Nova Despesa" para lançar.</div></div></td></tr>'; return }
+    tb.innerHTML=d.map(r=>`<tr><td class="fw7">${r.id_despesa}</td><td>${r.pessoas?.razao_social||r.pessoas?.nome||"—"}</td><td>${r.descricao}</td><td>${fmtDate(r.data_vencimento)}</td><td class="vn">R$ ${fmt(r.valor)}</td><td>${pillStatus(r.status)}</td><td>${r.tipo_custo==="fixo"?"Fixo":r.tipo_custo==="variavel"?"Variável":"—"}</td><td><button class="act-btn">⋯</button></td></tr>`).join("")
+  } catch(e){}
+}
+
+async function loadReceber(){
+  if(!APP.empresa) return
+  try{
+    const r = await fetch(`${SB}/rest/v1/contas_receber?select=id_fatura,valor_total,valor_final,data_emissao,data_vencimento,status,descricao,pessoas(nome,razao_social)&cliente_bop_id=eq.${APP.empresa.id}&order=data_vencimento`, { headers:hdrs() })
+    if(!r.ok) return
+    const d = await r.json()
+    const tb = document.getElementById("tb-receber")
+    if(!d.length){ tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="empty-t">Nenhuma fatura</div><div class="empty-d">Clique em "Nova Fatura" para lançar.</div></div></td></tr>'; return }
+    tb.innerHTML=d.map(r=>`<tr><td class="fw7">${r.id_fatura}</td><td>${r.pessoas?.razao_social||r.pessoas?.nome||"—"}</td><td>${r.descricao}</td><td>${fmtDate(r.data_emissao)}</td><td>${fmtDate(r.data_vencimento)}</td><td class="vp">R$ ${fmt(r.valor_final||r.valor_total)}</td><td>${pillStatus(r.status)}</td><td><button class="act-btn">⋯</button></td></tr>`).join("")
+  } catch(e){}
+}
+
+function abrirLancamento(tipo){ abrirModalLancamento(tipo) }
+
+// ── EMPRESAS TABELA ───────────────────────────────────
+let allEmpresas=[]
+async function loadEmpresasTabela(){
+  try{
+    const r=await fetch(SB+"/rest/v1/clientes_bop?select=id,nome_empresa,cnpj,plano,ativo,criado_em&order=nome_empresa", { headers:hdrs() })
+    if(!r.ok) return
+    allEmpresas=await r.json()
+    renderEmpresas(allEmpresas)
+  } catch(e){}
+}
+
+function renderEmpresas(list){
+  const tb=document.getElementById("tb-empresas")
+  if(!list.length){ tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div><div class="empty-t">Nenhuma empresa cadastrada</div><div class="empty-d">Clique em "Nova Empresa" para começar.</div></div></td></tr>'; return }
+  const pc={basico:"Básico",intermediario:"Intermediário",premium:"Premium"}
+  tb.innerHTML=list.map(c=>`<tr><td><div style="font-weight:600;color:var(--ink)">${c.nome_fantasia||c.nome_empresa}</div>${c.razao_social&&c.razao_social!==c.nome_empresa?`<div style="font-size:11px;color:var(--gray-400)">${c.razao_social}</div>`:""}</td><td style="font-size:12px">${c.cnpj||"—"}</td><td><span style="background:var(--purple-pale);color:var(--purple);font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px">${pc[c.plano]||c.plano||"—"}</span></td><td><span class="pill ${c.ativo?"pa":"at"}">${c.ativo?"Ativo":"Inativo"}</span></td><td style="font-size:12px">${c.criado_em?new Date(c.criado_em).toLocaleDateString("pt-BR"):"—"}</td><td><button class="act-btn" onclick="toggleEmpresaAtivo('${c.id}',${c.ativo})">${c.ativo?"🔴":"🟢"}</button><button class="act-btn" onclick="abrirModalEmpresa('${c.id}')" title="Editar">✏️</button></td></tr>`).join("")
+  APP.empresas=list.filter(c=>c.ativo); renderCl(APP.empresas)
+}
+
+function filtrarEmpresas(q){ renderEmpresas(allEmpresas.filter(c=>c.nome_empresa.toLowerCase().includes(q.toLowerCase())||(c.cnpj||"").includes(q))) }
+function filtrarEmpresasStatus(v){ renderEmpresas(v===""?allEmpresas:allEmpresas.filter(c=>String(c.ativo)===v)) }
+
+async function toggleEmpresaAtivo(id,atual){
+  await fetch(SB+"/rest/v1/clientes_bop?id=eq."+id, { method:"PATCH", headers:hdrsJson(), body:JSON.stringify({ativo:!atual}) })
+  loadEmpresasTabela()
+}
+
+// ── MODAL EMPRESA ─────────────────────────────────────
+// ── Modal Empresa — completo ──────────────────────────
+let EMP_EDIT_ID = null
+let empContatosTemp = []
+let empAnexosTemp   = []
+
+function empTab(btn, id){
+  document.querySelectorAll(".mp-tab").forEach(b=>b.classList.remove("on")); btn.classList.add("on")
+  document.querySelectorAll("[id^='empt-']").forEach(el=>el.style.display="none")
+  const el=document.getElementById("empt-"+id); if(el) el.style.display="block"
+}
+
+function abrirModalEmpresa(editId=null){
+  EMP_EDIT_ID=editId
+  empContatosTemp=[{ nome:"", cargo:"", email:"", telefone:"", principal:true }]
+  empAnexosTemp=[]
+  document.getElementById("modalEmpresa").classList.add("on")
+  document.getElementById("empAlert").style.display="none"
+  document.getElementById("empDocStatus").style.display="none"
+  document.getElementById("empFiscalWrap").style.display="none"
+  document.getElementById("empTitle").textContent=editId?"Editar Empresa Cliente":"Nova Empresa Cliente"
+  // Limpa campos
+  ["emp-cnpj","emp-razao","emp-fantasia","emp-email","emp-tel","emp-site","emp-ig",
+   "emp-cep","emp-rua","emp-num","emp-comp","emp-bairro","emp-cidade","emp-obs","emp-emailacesso"
+  ].forEach(id=>{ const el=document.getElementById(id); if(el) el.value="" })
+  document.getElementById("emp-plano").value="basico"
+  document.getElementById("emp-uf").value=""
+  empRenderContatos()
+  empRenderAnexos()
+  // Vai para aba dados
+  document.querySelector(".mp-tab.on")?.classList.remove("on")
+  document.querySelectorAll("#modalEmpresa .mp-tab")[0].classList.add("on")
+  document.querySelectorAll("[id^='empt-']").forEach(el=>el.style.display="none")
+  document.getElementById("empt-dados").style.display="block"
+  // Se edição, carrega dados
+  if(editId) empCarregarDados(editId)
+}
+
+async function empCarregarDados(id){
+  try{
+    const r=await fetch(SB+"/rest/v1/clientes_bop?id=eq."+id+"&select=*", { headers:hdrs() })
+    if(!r.ok) return
+    const [d]=await r.json()
+    if(!d) return
+    document.getElementById("emp-cnpj").value    = d.cnpj ? d.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,"$1.$2.$3/$4-$5") : ""
+    document.getElementById("emp-razao").value   = d.razao_social || d.nome_empresa || ""
+    document.getElementById("emp-fantasia").value= d.nome_fantasia || ""
+    document.getElementById("emp-email").value   = d.email || ""
+    document.getElementById("emp-tel").value     = d.telefone || ""
+    document.getElementById("emp-site").value    = d.website || ""
+    document.getElementById("emp-ig").value      = d.instagram || ""
+    document.getElementById("emp-plano").value   = d.plano || "basico"
+    document.getElementById("emp-cep").value     = d.cep ? d.cep.slice(0,5)+"-"+d.cep.slice(5) : ""
+    document.getElementById("emp-rua").value     = d.logradouro || ""
+    document.getElementById("emp-num").value     = d.numero || ""
+    document.getElementById("emp-comp").value    = d.complemento || ""
+    document.getElementById("emp-bairro").value  = d.bairro || ""
+    document.getElementById("emp-cidade").value  = d.cidade || ""
+    document.getElementById("emp-uf").value      = d.uf || ""
+    document.getElementById("emp-obs").value     = d.observacoes || ""
+    if(d.situacao_cadastral){ document.getElementById("empFiscalWrap").style.display="block"; document.getElementById("emp-sit").value=d.situacao_cadastral||""; document.getElementById("emp-porte").value=d.porte_empresa||""; document.getElementById("emp-cnae").value=(d.cnae_principal||"")+(d.cnae_descricao?" — "+d.cnae_descricao:"") }
+    // Carrega contatos e anexos
+    const rc=await fetch(SB+"/rest/v1/empresa_contatos?cliente_bop_id=eq."+id+"&order=principal.desc,criado_em", { headers:hdrs() })
+    if(rc.ok){ empContatosTemp=await rc.json(); if(!empContatosTemp.length) empContatosTemp=[{nome:"",cargo:"",email:"",telefone:"",principal:true}]; empRenderContatos() }
+  } catch(e){ console.log(e) }
+}
+
+function fecharModalEmpresa(){ document.getElementById("modalEmpresa").classList.remove("on") }
+
+function empMaskCNPJ(el){
+  let v=el.value.replace(/\D/g,"")
+  if(v.length>14) v=v.slice(0,14)
+  if(v.length>12) v=v.slice(0,2)+"."+v.slice(2,5)+"."+v.slice(5,8)+"/"+v.slice(8,12)+"-"+v.slice(12)
+  else if(v.length>8) v=v.slice(0,2)+"."+v.slice(2,5)+"."+v.slice(5,8)+"/"+v.slice(8)
+  else if(v.length>5) v=v.slice(0,2)+"."+v.slice(2,5)+"."+v.slice(5)
+  else if(v.length>2) v=v.slice(0,2)+"."+v.slice(2)
+  el.value=v
+}
+
+function empMaskTel(el){ let v=el.value.replace(/\D/g,""); if(v.length>11) v=v.slice(0,11); if(v.length>10) v="("+v.slice(0,2)+") "+v.slice(2,7)+"-"+v.slice(7); else if(v.length>6) v="("+v.slice(0,2)+") "+v.slice(2,6)+"-"+v.slice(6); else if(v.length>2) v="("+v.slice(0,2)+") "+v.slice(2); el.value=v }
+function empMaskCEP(el){ let v=el.value.replace(/\D/g,""); if(v.length>8) v=v.slice(0,8); if(v.length>5) v=v.slice(0,5)+"-"+v.slice(5); el.value=v }
+
+async function empFetchCNPJ(raw){
+  const doc=raw.replace(/\D/g,""); if(doc.length!==14) return
+  const st=document.getElementById("empDocStatus"), btn=document.getElementById("empBtnBuscar")
+  st.style.display="block"; st.style.color=var_purple; st.textContent="🔍 Consultando Receita Federal..."
+  btn.textContent="Buscando..."; btn.disabled=true
+  try{
+    const r=await fetch("https://brasilapi.com.br/api/cnpj/v1/"+doc)
+    if(!r.ok) throw new Error("CNPJ não encontrado")
+    const d=await r.json()
+    document.getElementById("emp-razao").value    = d.razao_social||""
+    document.getElementById("emp-fantasia").value = d.nome_fantasia||d.razao_social||""
+    document.getElementById("emp-email").value    = d.email||""
+    const cep=(d.cep||"").replace(/\D/g,"")
+    if(cep){ document.getElementById("emp-cep").value=cep.slice(0,5)+"-"+cep.slice(5); document.getElementById("emp-rua").value=d.logradouro||""; document.getElementById("emp-num").value=d.numero||""; document.getElementById("emp-comp").value=d.complemento||""; document.getElementById("emp-bairro").value=d.bairro||""; document.getElementById("emp-cidade").value=d.municipio||""; document.getElementById("emp-uf").value=d.uf||"" }
+    document.getElementById("empFiscalWrap").style.display="block"
+    document.getElementById("emp-sit").value   = d.descricao_situacao_cadastral||""
+    const pt=(d.porte||"").toLowerCase()
+    document.getElementById("emp-porte").value = pt.includes("mei")?"MEI":pt.includes("micro")?"ME":pt.includes("pequeno")?"EPP":(d.porte||"")
+    document.getElementById("emp-abertura").value = d.data_inicio_atividade||""
+    if(d.cnae_fiscal) document.getElementById("emp-cnae").value=d.cnae_fiscal+" — "+(d.cnae_fiscal_descricao||"")
+    // Preenche primeiro contato com dados da Receita se vazio
+    if(!empContatosTemp[0].nome && d.qsa?.length){ empContatosTemp[0].nome=d.qsa[0].nome_socio||""; empRenderContatos() }
+    st.style.color="#16a34a"; st.textContent="✓ Dados preenchidos automaticamente pela Receita Federal"
+  } catch(e){ st.style.color="#dc2626"; st.textContent="⚠ "+(e.message||"Erro ao consultar") }
+  finally{ btn.textContent="Buscar"; btn.disabled=false }
+}
+
+async function empFetchCEP(raw){
+  const cep=raw.replace(/\D/g,""); if(cep.length!==8) return
+  try{
+    const r=await fetch("https://viacep.com.br/ws/"+cep+"/json/"); const d=await r.json(); if(d.erro) return
+    document.getElementById("emp-rua").value=d.logradouro||""; document.getElementById("emp-bairro").value=d.bairro||""; document.getElementById("emp-cidade").value=d.localidade||""; document.getElementById("emp-uf").value=d.uf||""
+  } catch(e){}
+}
+
+// ── Contatos ──────────────────────────────────────────
+function empRenderContatos(){
+  const wrap=document.getElementById("empContatosList"); if(!wrap) return
+  wrap.innerHTML=empContatosTemp.map((c,i)=>`
+    <div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-bottom:10px;border:1px solid ${c.principal?"rgba(103,30,117,.2)":"var(--gray-300)"}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="radio" name="empPrincipal" ${c.principal?"checked":""} onchange="empSetPrincipal(${i})" style="accent-color:var(--purple)"/>
+          <span style="font-size:11px;font-weight:700;color:var(--purple)">CONTATO ${c.principal?"PRINCIPAL":""}</span>
+        </div>
+        ${empContatosTemp.length>1?`<button onclick="empRemoverContato(${i})" style="background:rgba(239,68,68,.08);border:none;border-radius:6px;padding:4px 8px;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer">Remover</button>`:""}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div class="mp-f" style="grid-column:1/-1"><label class="mp-l">Nome completo</label><input type="text" class="mp-i" value="${c.nome||""}" oninput="empContatosTemp[${i}].nome=this.value" placeholder="Nome do contato"/></div>
+        <div class="mp-f"><label class="mp-l">Cargo</label><input type="text" class="mp-i" value="${c.cargo||""}" oninput="empContatosTemp[${i}].cargo=this.value" placeholder="Diretor, Gerente..."/></div>
+        <div class="mp-f"><label class="mp-l">E-mail</label><input type="email" class="mp-i" value="${c.email||""}" oninput="empContatosTemp[${i}].email=this.value" placeholder="contato@empresa.com.br"/></div>
+        <div class="mp-f"><label class="mp-l">Telefone / WhatsApp</label><input type="text" class="mp-i" value="${c.telefone||""}" oninput="empContatosTemp[${i}].telefone=this.value" placeholder="(00) 00000-0000"/></div>
+      </div>
+    </div>
+  `).join("")
+}
+
+function empAdicionarContato(){ empContatosTemp.push({nome:"",cargo:"",email:"",telefone:"",principal:false}); empRenderContatos() }
+function empRemoverContato(i){ empContatosTemp.splice(i,1); if(!empContatosTemp.some(c=>c.principal)&&empContatosTemp.length) empContatosTemp[0].principal=true; empRenderContatos() }
+function empSetPrincipal(i){ empContatosTemp.forEach((c,idx)=>c.principal=(idx===i)); empRenderContatos() }
+
+// ── Anexos ────────────────────────────────────────────
+function empRenderAnexos(){
+  const wrap=document.getElementById("empAnexosList"); if(!wrap) return
+  if(!empAnexosTemp.length){ wrap.innerHTML=""; return }
+  wrap.innerHTML=empAnexosTemp.map((a,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;background:var(--gray-100);border-radius:8px;padding:10px 14px;margin-bottom:8px;border:1px solid var(--gray-300)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--ink)">${a.name}</div><div style="font-size:11px;color:var(--gray-400)">${(a.size/1024/1024).toFixed(2)} MB</div></div>
+      <input type="text" placeholder="Descrição do arquivo..." value="${a.descricao||""}" oninput="empAnexosTemp[${i}].descricao=this.value" style="flex:1;border:1px solid var(--gray-300);border-radius:7px;padding:7px 10px;font-family:Barlow,sans-serif;font-size:12px;outline:none"/>
+      <button onclick="empAnexosTemp.splice(${i},1);empRenderAnexos()" style="background:rgba(239,68,68,.08);border:none;border-radius:6px;padding:5px 8px;color:#dc2626;cursor:pointer;font-size:12px">✕</button>
+    </div>
+  `).join("")
+}
+
+function empHandleFiles(files){ Array.from(files).forEach(f=>{ if(f.size<=50*1024*1024) empAnexosTemp.push(f); }); empRenderAnexos() }
+function empHandleDrop(e){ e.preventDefault(); document.getElementById("empDropZone").style.borderColor="var(--gray-300)"; document.getElementById("empDropZone").style.background="transparent"; empHandleFiles(e.dataTransfer.files) }
+
+// ── Salvar empresa ────────────────────────────────────
+async function empSalvar(){
+  const razao=document.getElementById("emp-razao").value.trim()
+  const cnpj=document.getElementById("emp-cnpj").value.replace(/\D/g,"")
+  if(!razao){ showEmpAlert("Razão Social é obrigatória."); return }
+  const payload={
+    nome_empresa:  document.getElementById("emp-fantasia").value.trim() || razao,
+    razao_social:  razao,
+    nome_fantasia: document.getElementById("emp-fantasia").value.trim()||null,
+    cnpj:          cnpj||null,
+    plano:         document.getElementById("emp-plano").value,
+    email:         document.getElementById("emp-email").value||null,
+    telefone:      document.getElementById("emp-tel").value.replace(/\D/g,"")||null,
+    website:       document.getElementById("emp-site").value||null,
+    instagram:     document.getElementById("emp-ig").value||null,
+    cep:           document.getElementById("emp-cep").value.replace(/\D/g,"")||null,
+    logradouro:    document.getElementById("emp-rua").value||null,
+    numero:        document.getElementById("emp-num").value||null,
+    complemento:   document.getElementById("emp-comp").value||null,
+    bairro:        document.getElementById("emp-bairro").value||null,
+    cidade:        document.getElementById("emp-cidade").value||null,
+    uf:            document.getElementById("emp-uf").value||null,
+    observacoes:   document.getElementById("emp-obs").value||null,
+    situacao_cadastral: document.getElementById("emp-sit").value||null,
+    porte_empresa: document.getElementById("emp-porte").value||null,
+    cnae_descricao:document.getElementById("emp-cnae").value.split(" — ")[1]||null,
+    operador_id:   OP_ID,
+    ativo:         true
+  }
+  const btn=document.getElementById("empBtnSalvar"); btn.textContent="Salvando..."; btn.disabled=true
+  try{
+    let res, novoId=EMP_EDIT_ID
+    if(EMP_EDIT_ID){
+      res=await fetch(SB+"/rest/v1/clientes_bop?id=eq."+EMP_EDIT_ID, { method:"PATCH", headers:hdrsJson(), body:JSON.stringify(payload) })
+    } else {
+      res=await fetch(SB+"/rest/v1/clientes_bop", { method:"POST", headers:hdrsJson(), body:JSON.stringify(payload) })
+      if(res.ok){ const d=await res.json(); novoId=Array.isArray(d)?d[0]?.id:d?.id }
+    }
+    if(!res.ok){ const e=await res.json(); showEmpAlert(e.message||"Erro ao salvar."); return }
+    // Salva contatos
+    if(novoId){
+      if(!EMP_EDIT_ID) { /* novo: deleta nenhum */ } else { await fetch(SB+"/rest/v1/empresa_contatos?cliente_bop_id=eq."+novoId, { method:"DELETE", headers:hdrs() }) }
+      const contsBom=empContatosTemp.filter(c=>c.nome)
+      if(contsBom.length) await fetch(SB+"/rest/v1/empresa_contatos", { method:"POST", headers:hdrsJson(), body:JSON.stringify(contsBom.map(c=>({...c, cliente_bop_id:novoId}))) })
+    }
+    showEmpAlert(EMP_EDIT_ID?"Empresa atualizada!":"Empresa salva com sucesso!","success")
+    setTimeout(()=>{ fecharModalEmpresa(); loadEmpresas(); loadEmpresasTabela() },1000)
+  } catch(e){ showEmpAlert("Erro de conexão.") }
+  finally{ btn.textContent="Salvar Empresa"; btn.disabled=false }
+}
+
+function showEmpAlert(msg,t="error"){
+  const el=document.getElementById("empAlert"); el.style.display="block"
+  el.style.background=t==="error"?"rgba(239,68,68,.08)":"rgba(16,185,129,.08)"
+  el.style.border=t==="error"?"1px solid rgba(239,68,68,.3)":"1px solid rgba(16,185,129,.3)"
+  el.style.color=t==="error"?"#dc2626":"#16a34a"; el.textContent=msg
+}
+
+// ── PESSOAS ───────────────────────────────────────────
+let allPessoas=[], pessoaFiltroTipo=""
+async function loadPessoas(){
+  if(!APP.empresa) return
+  try{
+    const r=await fetch(`${SB}/rest/v1/pessoas?cliente_bop_id=eq.${APP.empresa.id}&subtipo=in.(cliente,fornecedor,geral)&select=id,nome,razao_social,tipo,subtipo,documento,tipo_documento,email,cidade,uf,ativo&order=nome`, { headers:hdrs() })
+    if(!r.ok){ renderPessoas([]); return }
+    allPessoas=await r.json()
+    renderPessoas(allPessoas)
+  } catch(e){ renderPessoas([]) }
+}
+
+function renderPessoas(list){
+  const tb=document.getElementById("tb-pessoas")
+  if(!list.length){ tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="empty-t">Nenhum cadastro</div><div class="empty-d">Use os botões acima para adicionar clientes ou fornecedores.</div></div></td></tr>'; return }
+  const tlbl={cliente:"Cliente",fornecedor:"Fornecedor",ambos:"Ambos",geral:"Geral"}
+  const tbg={cliente:"#e6f1fb",fornecedor:"#faeeda",ambos:"#eeedfe",geral:"#f1efe8"}
+  const tc={cliente:"#0c447c",fornecedor:"#633806",ambos:"#3c3489",geral:"#444441"}
+  tb.innerHTML=list.map(p=>{
+    const nome=p.razao_social||p.nome
+    const ini=nome.split(" ").slice(0,2).map(n=>n[0]).join("").toUpperCase()
+    const t=p.subtipo||p.tipo||"geral"
+    const doc=p.documento?(p.tipo_documento==="cnpj"?p.documento.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,"$1.$2.$3/$4-$5"):p.documento.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/,"$1.$2.$3-$4")):"—"
+    return `<tr><td><div style="display:flex;align-items:center;gap:9px"><div style="width:30px;height:30px;border-radius:50%;background:var(--purple-pale);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--purple);flex-shrink:0">${ini}</div><span style="font-weight:600">${nome}</span></div></td><td><span style="background:${tbg[t]||"#f1efe8"};color:${tc[t]||"#444"};font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px">${tlbl[t]||t}</span></td><td style="font-size:12px">${doc}</td><td style="font-size:12px">${p.email||"—"}</td><td style="font-size:12px">${p.cidade||"—"}${p.uf?" / "+p.uf:""}</td><td><span class="pill ${p.ativo?"pa":"at"}">${p.ativo?"Ativo":"Inativo"}</span></td><td><button class="act-btn" onclick="abrirModalPessoa('${t}','${p.id}')">✏️</button></td></tr>`
+  }).join("")
+}
+
+function filtrarPessoas(q){ renderPessoas((pessoaFiltroTipo?allPessoas.filter(p=>(p.subtipo||p.tipo)===pessoaFiltroTipo):allPessoas).filter(p=>(p.nome||"").toLowerCase().includes(q.toLowerCase())||(p.razao_social||"").toLowerCase().includes(q.toLowerCase())||(p.documento||"").includes(q))) }
+
+function filtrarTipoPessoa(btn,tipo){
+  pessoaFiltroTipo=tipo
+  document.querySelectorAll("#v-pessoas .tipo-filter").forEach(b=>b.classList.remove("on")); btn.classList.add("on")
+  renderPessoas(tipo?allPessoas.filter(p=>(p.subtipo||p.tipo)===tipo):allPessoas)
+}
+
+// ── COLABORADORES ─────────────────────────────────────
+let allColab=[], colabFiltroTipo=""
+async function loadColab(){
+  if(!APP.empresa) return
+  try{
+    const r=await fetch(`${SB}/rest/v1/pessoas?cliente_bop_id=eq.${APP.empresa.id}&subtipo=in.(clt,pj,estagiario,autonomo)&select=id,nome,tipo,subtipo,documento,cargo,data_admissao,salario,ativo&order=nome`, { headers:hdrs() })
+    if(!r.ok){ renderColab([]); return }
+    allColab=await r.json(); renderColab(allColab)
+  } catch(e){ renderColab([]) }
+}
+
+function renderColab(list){
+  const tb=document.getElementById("tb-colab")
+  if(!list.length){ tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><div class="empty-t">Nenhum colaborador</div><div class="empty-d">Use os botões acima para adicionar colaboradores.</div></div></td></tr>'; return }
+  const vlbl={clt:"CLT",pj:"Prestador PJ",estagiario:"Estagiário",autonomo:"Autônomo"}
+  const vbg={clt:"#eaf3de",pj:"#eeedfe",estagiario:"#faeeda",autonomo:"#faece7"}
+  const vc={clt:"#27500a",pj:"#3c3489",estagiario:"#633806",autonomo:"#712b13"}
+  tb.innerHTML=list.map(p=>{
+    const t=p.subtipo||"clt"
+    const doc=p.documento?p.documento.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/,"$1.$2.$3-$4"):"—"
+    return `<tr><td style="font-weight:600">${p.nome}</td><td><span style="background:${vbg[t]||"#f1efe8"};color:${vc[t]||"#444"};font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px">${vlbl[t]||t}</span></td><td style="font-size:12px">${doc}</td><td style="font-size:12px">${p.cargo||"—"}</td><td style="font-size:12px">${fmtDate(p.data_admissao)}</td><td style="font-size:12px">${p.salario?"R$ "+fmt(p.salario):"—"}</td><td><span class="pill ${p.ativo?"pa":"at"}">${p.ativo?"Ativo":"Inativo"}</span></td><td><button class="act-btn" onclick="abrirModalPessoa('${t}','${p.id}')">✏️</button></td></tr>`
+  }).join("")
+}
+
+function filtrarTipoColab(btn,tipo){
+  colabFiltroTipo=tipo
+  document.querySelectorAll("#v-colab .tipo-filter").forEach(b=>b.classList.remove("on")); btn.classList.add("on")
+  renderColab(tipo?allColab.filter(p=>(p.subtipo||p.tipo)===tipo):allColab)
+}
+
+// ── MODAL PESSOA ──────────────────────────────────────
+let MP_TIPO="cliente", MP_EDIT_ID=null
+const var_purple="#671e75"
+
+function abrirModalPessoa(tipo="cliente", editId=null){
+  MP_EDIT_ID=editId; MP_TIPO=tipo
+  document.getElementById("modalPessoa").classList.add("on")
+  document.getElementById("mpAlert").style.display="none"
+  document.getElementById("mpDocStatus").style.display="none"
+  document.querySelectorAll("#modalPessoa input, #modalPessoa select, #modalPessoa textarea").forEach(el=>{ if(el.type==="checkbox") el.checked=true; else el.value="" })
+  const btn=document.querySelector(`.tipo-btn[data-t="${tipo}"]`)
+  if(btn) mpSetTipo(btn,tipo)
+  mpTab(document.querySelector(".mp-tab.on")||document.querySelector(".mp-tab"),"dados")
+  const titles={cliente:"Novo Cliente",fornecedor:"Novo Fornecedor",clt:"Novo Colaborador CLT",pj:"Novo Prestador PJ"}
+  document.getElementById("mpTitle").textContent=editId?"Editar Cadastro":(titles[tipo]||"Novo Cadastro")
+  document.getElementById("mpSub").textContent=APP.empresa?("Empresa: "+APP.empresa.nome_empresa):"Selecione uma empresa"
+}
+
+function fecharModalPessoa(){ document.getElementById("modalPessoa").classList.remove("on") }
+
+function mpSetTipo(btn,tipo){
+  MP_TIPO=tipo
+  document.querySelectorAll(".tipo-btn").forEach(b=>b.classList.remove("on")); btn.classList.add("on")
+  // Doc label
+  const isPF=tipo==="clt"
+  document.getElementById("mpDocLabel").textContent=isPF?"CPF — identificação do colaborador":"CNPJ — busca automática na Receita Federal"
+  document.getElementById("mp-doc").placeholder=isPF?"000.000.000-00":"00.000.000/0001-00"
+  document.getElementById("mp-doc").maxLength=isPF?14:18
+  // Aba extra
+  const tabExtra=document.getElementById("mpTabExtra")
+  const labels={clt:"Dados do Trabalho",pj:"Dados do Contrato PJ",fornecedor:"Dados de Fornecimento",cliente:""}
+  tabExtra.textContent=labels[tipo]||""; tabExtra.style.display=(tipo==="cliente"||tipo==="ambos")?"none":"block"
+  // Seções na aba extra
+  document.getElementById("mpExtraCLT").style.display=tipo==="clt"?"block":"none"
+  document.getElementById("mpExtraPJ").style.display=tipo==="pj"?"block":"none"
+  document.getElementById("mpExtraForn").style.display=tipo==="fornecedor"?"block":"none"
+  document.getElementById("mpPFWrap").style.display=(tipo==="clt"||tipo==="pj")?"block":"none"
+  document.getElementById("mpFiscalWrap").style.display=(tipo==="fornecedor"||tipo==="cliente")?"none":"none"
+}
+
+function mpTab(btn,id){
+  document.querySelectorAll(".mp-tab").forEach(b=>b.classList.remove("on")); btn.classList.add("on")
+  document.querySelectorAll("[id^='mpt-']").forEach(el=>el.style.display="none")
+  const el=document.getElementById("mpt-"+id); if(el) el.style.display="block"
+}
+
+function mpMaskDoc(el){
+  const isPF=MP_TIPO==="clt"
+  let v=el.value.replace(/\D/g,"")
+  if(isPF){ if(v.length>11) v=v.slice(0,11); if(v.length>9) v=v.slice(0,3)+"."+v.slice(3,6)+"."+v.slice(6,9)+"-"+v.slice(9); else if(v.length>6) v=v.slice(0,3)+"."+v.slice(3,6)+"."+v.slice(6); else if(v.length>3) v=v.slice(0,3)+"."+v.slice(3) }
+  else{ if(v.length>14) v=v.slice(0,14); if(v.length>12) v=v.slice(0,2)+"."+v.slice(2,5)+"."+v.slice(5,8)+"/"+v.slice(8,12)+"-"+v.slice(12); else if(v.length>8) v=v.slice(0,2)+"."+v.slice(2,5)+"."+v.slice(5,8)+"/"+v.slice(8); else if(v.length>5) v=v.slice(0,2)+"."+v.slice(2,5)+"."+v.slice(5); else if(v.length>2) v=v.slice(0,2)+"."+v.slice(2) }
+  el.value=v
+}
+
+function mpMaskTel(el){ let v=el.value.replace(/\D/g,""); if(v.length>11) v=v.slice(0,11); if(v.length>10) v="("+v.slice(0,2)+") "+v.slice(2,7)+"-"+v.slice(7); else if(v.length>6) v="("+v.slice(0,2)+") "+v.slice(2,6)+"-"+v.slice(6); else if(v.length>2) v="("+v.slice(0,2)+") "+v.slice(2); el.value=v }
+function mpMaskCEP(el){ let v=el.value.replace(/\D/g,""); if(v.length>8) v=v.slice(0,8); if(v.length>5) v=v.slice(0,5)+"-"+v.slice(5); el.value=v }
+function mpMaskMoeda(el){ let v=el.value.replace(/\D/g,""); v=(parseInt(v||"0")/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); el.value=v }
+
+async function mpFetchDoc(raw){
+  const doc=raw.replace(/\D/g,"")
+  if(doc.length!==14) return
+  const st=document.getElementById("mpDocStatus"), btn=document.getElementById("mpBtnBuscar")
+  st.style.display="block"; st.style.color=var_purple; st.textContent="🔍 Consultando Receita Federal..."
+  btn.textContent="Buscando..."; btn.disabled=true
+  try{
+    const r=await fetch("https://brasilapi.com.br/api/cnpj/v1/"+doc)
+    if(!r.ok) throw new Error("CNPJ não encontrado")
+    const d=await r.json()
+    document.getElementById("mp-nome").value=d.razao_social||""
+    document.getElementById("mp-fantasia").value=d.nome_fantasia||d.razao_social||""
+    document.getElementById("mp-email").value=d.email||""
+    const cep=(d.cep||"").replace(/\D/g,"")
+    if(cep){ document.getElementById("mp-cep").value=cep.slice(0,5)+"-"+cep.slice(5); document.getElementById("mp-rua").value=d.logradouro||""; document.getElementById("mp-num").value=d.numero||""; document.getElementById("mp-comp").value=d.complemento||""; document.getElementById("mp-bairro").value=d.bairro||""; document.getElementById("mp-cidade").value=d.municipio||""; const uf=document.getElementById("mp-uf"); if(uf) uf.value=d.uf||"" }
+    document.getElementById("mpFiscalWrap").style.display="block"
+    document.getElementById("mp-sit").value=d.descricao_situacao_cadastral||""
+    const pt=(d.porte||"").toLowerCase()
+    document.getElementById("mp-porte").value=pt.includes("mei")?"MEI":pt.includes("micro")?"ME":pt.includes("pequeno")?"EPP":(d.porte||"")
+    if(d.cnae_fiscal) document.getElementById("mp-cnae").value=d.cnae_fiscal+" — "+(d.cnae_fiscal_descricao||"")
+    st.style.color="#16a34a"; st.textContent="✓ Dados preenchidos automaticamente pela Receita Federal"
+  } catch(e){ st.style.color="#dc2626"; st.textContent="⚠ "+(e.message||"Não foi possível consultar") }
+  finally{ btn.textContent="Buscar"; btn.disabled=false }
+}
+
+async function mpFetchCEP(raw){
+  const cep=raw.replace(/\D/g,""); if(cep.length!==8) return
+  try{
+    const r=await fetch("https://viacep.com.br/ws/"+cep+"/json/")
+    const d=await r.json(); if(d.erro) return
+    document.getElementById("mp-rua").value=d.logradouro||""; document.getElementById("mp-bairro").value=d.bairro||""; document.getElementById("mp-cidade").value=d.localidade||""; const uf=document.getElementById("mp-uf"); if(uf) uf.value=d.uf||""
+  } catch(e){}
+}
+
+function mpAlert(msg,t="error"){ const el=document.getElementById("mpAlert"); el.style.display="block"; el.style.background=t==="error"?"rgba(239,68,68,.08)":"rgba(16,185,129,.08)"; el.style.border=t==="error"?"1px solid rgba(239,68,68,.3)":"1px solid rgba(16,185,129,.3)"; el.style.color=t==="error"?"#dc2626":"#16a34a"; el.textContent=msg; el.scrollIntoView({behavior:"smooth",block:"nearest"}) }
+
+async function mpSalvar(){
+  if(!APP.empresa){ mpAlert("Selecione uma empresa antes de cadastrar."); return }
+  const nome=document.getElementById("mp-nome").value.trim()
+  if(!nome){ mpAlert("Nome / Razão Social é obrigatório."); return }
+  const doc=document.getElementById("mp-doc").value.replace(/\D/g,"")
+  const tipo_doc=doc.length===14?"cnpj":doc.length===11?"cpf":null
+  const tipo_p=MP_TIPO==="cliente"?"cliente":MP_TIPO==="fornecedor"?"fornecedor":"ambos"
+  const payload={
+    cliente_bop_id:APP.empresa.id, tipo:tipo_p, subtipo:MP_TIPO,
+    tipo_relacionamento:MP_TIPO==="cliente"?"cliente_do_cliente":"fornecedor",
+    nome, documento:doc||null, tipo_documento:tipo_doc,
+    nome_fantasia:document.getElementById("mp-fantasia").value||null,
+    email:document.getElementById("mp-email").value||null,
+    telefone:document.getElementById("mp-tel").value.replace(/\D/g,"")||null,
+    whatsapp:document.getElementById("mp-wpp").value.replace(/\D/g,"")||null,
+    logradouro:document.getElementById("mp-rua").value||null,
+    numero:document.getElementById("mp-num").value||null,
+    complemento:document.getElementById("mp-comp").value||null,
+    bairro:document.getElementById("mp-bairro").value||null,
+    cidade:document.getElementById("mp-cidade").value||null,
+    uf:document.getElementById("mp-uf").value||null,
+    cep:document.getElementById("mp-cep").value.replace(/\D/g,"")||null,
+    pix_tipo:document.getElementById("mp-pixT").value||null,
+    pix_chave:document.getElementById("mp-pix").value||null,
+    banco:document.getElementById("mp-banco").value||null,
+    agencia:document.getElementById("mp-ag").value||null,
+    conta:document.getElementById("mp-conta").value||null,
+    obs_interna:document.getElementById("mp-obs").value||null,
+    tags:(document.getElementById("mp-tags").value||"").split(",").map(t=>t.trim()).filter(Boolean),
+    cargo:document.getElementById("mp-cargo").value||null,
+    data_admissao:document.getElementById("mp-admissao").value||null,
+    pis_pasep:document.getElementById("mp-pis").value||null,
+    data_nascimento:document.getElementById("mp-nasc").value||null,
+  }
+  const btn=document.getElementById("mpBtnSalvar"); btn.textContent="Salvando..."; btn.disabled=true
+  try{
+    let res
+    if(MP_EDIT_ID) res=await fetch(SB+"/rest/v1/pessoas?id=eq."+MP_EDIT_ID,{method:"PATCH",headers:hdrsJson(),body:JSON.stringify(payload)})
+    else res=await fetch(SB+"/rest/v1/pessoas",{method:"POST",headers:hdrsJson(),body:JSON.stringify(payload)})
+    if(!res.ok){ const e=await res.json(); mpAlert(e.message||"Erro ao salvar."); return }
+    mpAlert("Cadastro salvo com sucesso!","success")
+    setTimeout(()=>{ fecharModalPessoa(); if(MP_TIPO==="clt"||MP_TIPO==="pj") loadColab(); else loadPessoas() },900)
+  } catch(e){ mpAlert("Erro de conexão.") }
+  finally{ btn.textContent="Salvar Cadastro"; btn.disabled=false }
+}
+
+// ── LOGOUT ────────────────────────────────────────────
+function logout(){ localStorage.removeItem("ea_sessao"); window.location.href='/index.html' }
+
+// ── INIT ──────────────────────────────────────────────
+initAuth()
+
+// ═══════════════════════════════════════════════════
+//  MÓDULO USUÁRIOS
+// ═══════════════════════════════════════════════════
+let allUsuarios = []
+
+async function loadUsuarios(){
+  const tb = document.getElementById('tb-usuarios')
+  try{
+    const r = await fetch(SB+'/rest/v1/usuarios_sistema?select=id,nome,email,perfil,ativo,criado_em,cliente_bop_id,clientes_bop(nome_empresa)&order=criado_em.desc', { headers: hdrs() })
+    if(!r.ok){ tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-t">Erro ao carregar usuários</div></div></td></tr>'; return }
+    allUsuarios = await r.json()
+    renderUsuarios(allUsuarios)
+  } catch(e){ tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-t">Erro de conexão</div></div></td></tr>' }
+}
+
+function renderUsuarios(list){
+  const tb = document.getElementById('tb-usuarios')
+  if(!list.length){ tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="empty-t">Nenhum usuário cadastrado</div><div class="empty-d">Clique em "+ Novo Usuário" para criar o primeiro acesso.</div></div></td></tr>'; return }
+  const perfilLabel = { admin:'Admin', gestao:'Gestão', exclusiva:'Cliente' }
+  const perfilColor = { admin:'background:#4a1554;color:#fff', gestao:'background:var(--purple-pale);color:var(--purple)', exclusiva:'background:var(--yellow-pale);color:#b38000' }
+  tb.innerHTML = list.map(u => {
+    const ini = (u.nome||u.email||'U').substring(0,2).toUpperCase()
+    const empresa = u.clientes_bop?.nome_empresa || '—'
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:9px">
+        <div style="width:30px;height:30px;border-radius:50%;background:var(--purple-pale);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--purple)">${ini}</div>
+        <span style="font-weight:600">${u.nome||'—'}</span>
+      </div></td>
+      <td style="font-size:12px">${u.email}</td>
+      <td><span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;${perfilColor[u.perfil]||''}">${perfilLabel[u.perfil]||u.perfil}</span></td>
+      <td style="font-size:12px">${empresa}</td>
+      <td style="font-size:12px">${u.criado_em?new Date(u.criado_em).toLocaleDateString('pt-BR'):'—'}</td>
+      <td><span class="pill ${u.ativo?'pa':'at'}">${u.ativo?'Ativo':'Inativo'}</span></td>
+      <td>
+        <button class="act-btn" onclick="toggleUsuarioAtivo('${u.id}',${u.ativo})" title="${u.ativo?'Desativar':'Ativar'}">${u.ativo?'🔴':'🟢'}</button>
+        <button class="act-btn" onclick="abrirModalUsuario('${u.id}')" title="Editar">✏️</button>
+      </td>
+    </tr>`
+  }).join('')
+}
+
+function filtrarUsuariosPerfil(v){ renderUsuarios(v?allUsuarios.filter(u=>u.perfil===v):allUsuarios) }
+function filtrarUsuariosNome(q){ renderUsuarios(allUsuarios.filter(u=>(u.nome||'').toLowerCase().includes(q.toLowerCase())||(u.email||'').toLowerCase().includes(q.toLowerCase()))) }
+
+async function toggleUsuarioAtivo(id, atual){
+  await fetch(SB+'/rest/v1/usuarios_sistema?id=eq.'+id, { method:'PATCH', headers:hdrsJson(), body:JSON.stringify({ativo:!atual}) })
+  loadUsuarios()
+}
+
+// ═══════════════════════════════════════════════════
+//  MODAL DE LANÇAMENTO FINANCEIRO
+// ═══════════════════════════════════════════════════
+let LANC_TIPO = 'pagar'
+let LANC_EDIT_ID = null
+
+function abrirModalLancamento(tipo='pagar', editId=null){
+  LANC_TIPO = tipo
+  LANC_EDIT_ID = editId
+  const modal = document.getElementById('modalLancamento')
+  modal.classList.add('on')
+  document.getElementById('lancAlert').style.display = 'none'
+  // Atualiza labels conforme tipo
+  const isDespesa = tipo === 'pagar'
+  document.getElementById('lancTitle').textContent = editId ? 'Editar Lançamento' : (isDespesa ? 'Nova Despesa' : 'Nova Fatura')
+  document.getElementById('lancSub').textContent = isDespesa ? 'Conta a Pagar — Despesa para a empresa selecionada' : 'Conta a Receber — Fatura para a empresa selecionada'
+  document.getElementById('lancFornLabel').textContent = isDespesa ? 'Fornecedor' : 'Cliente'
+  document.getElementById('lancFornPlaceholder').placeholder = isDespesa ? 'Selecionar fornecedor...' : 'Selecionar cliente...'
+  // Valor label
+  document.getElementById('lancValorLabel').textContent = isDespesa ? 'Valor da Despesa *' : 'Valor da Fatura *'
+  // Limpar campos
+  ['lanc-descricao','lanc-valor','lanc-desconto','lanc-juros','lanc-multa','lanc-obs','lanc-nf','lanc-codigo'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value='' })
+  document.getElementById('lanc-competencia').value = new Date().toISOString().split('T')[0]
+  document.getElementById('lanc-vencimento').value = ''
+  document.getElementById('lanc-categoria').value = ''
+  document.getElementById('lanc-centro').value = ''
+  document.getElementById('lanc-forma').value = ''
+  document.getElementById('lanc-conta').value = ''
+  document.getElementById('lanc-parcelamento').value = 'avista'
+  document.getElementById('lanc-recorrencia').value = 'nao'
+  document.getElementById('lancRecorrenciaWrap').style.display = 'none'
+  document.getElementById('lancParcelasWrap').style.display = 'none'
+  // Carrega fornecedores/clientes
+  lancCarregarContatos(isDespesa ? 'fornecedor' : 'cliente')
+  // Carrega categorias
+  lancCarregarCategorias(isDespesa ? 'despesa' : 'receita')
+}
+
+async function lancCarregarContatos(subtipo){
+  if(!APP.empresa) return
+  try{
+    const r = await fetch(`${SB}/rest/v1/pessoas?cliente_bop_id=eq.${APP.empresa.id}&subtipo=eq.${subtipo}&select=id,nome,razao_social&order=nome`, { headers:hdrs() })
+    const sel = document.getElementById('lanc-forn')
+    if(r.ok){
+      const list = await r.json()
+      sel.innerHTML = '<option value="">— Nenhum —</option>' + list.map(p=>`<option value="${p.id}">${p.razao_social||p.nome}</option>`).join('')
+    }
+  } catch(e){}
+}
+
+async function lancCarregarCategorias(tipo_cat){
+  try{
+    const r = await fetch(`${SB}/rest/v1/categorias?tipo=eq.${tipo_cat}&ativo=eq.true&select=id,nome,codigo&order=nome`, { headers:hdrs() })
+    const sel = document.getElementById('lanc-categoria')
+    const defaults = tipo_cat==='despesa'
+      ? ['Aluguel','Energia Elétrica','Folha de Pagamento','Impostos','Material de Escritório','Serviços Terceiros','Telefone/Internet','Honorários Contábeis','Outros']
+      : ['Honorários Mensais','Consultoria','Serviços BPO','Taxa de Abertura','Outros']
+    if(r.ok){
+      const list = await r.json()
+      sel.innerHTML = '<option value="">Selecionar categoria...</option>' + (list.length ? list.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('') : defaults.map(n=>`<option value="${n}">${n}</option>`).join(''))
+    } else {
+      sel.innerHTML = '<option value="">Selecionar categoria...</option>' + defaults.map(n=>`<option value="${n}">${n}</option>`).join('')
+    }
+  } catch(e){
+    const defaults = LANC_TIPO==='pagar'
+      ? ['Aluguel','Energia Elétrica','Folha de Pagamento','Impostos','Outros']
+      : ['Honorários Mensais','Consultoria','Serviços BPO','Outros']
+    document.getElementById('lanc-categoria').innerHTML = '<option value="">Selecionar categoria...</option>' + defaults.map(n=>`<option value="${n}">${n}</option>`).join('')
+  }
+}
+
+function fecharModalLancamento(){ document.getElementById('modalLancamento').classList.remove('on') }
+
+function lancMaskMoeda(el){ let v=el.value.replace(/\D/g,''); v=(parseInt(v||'0')/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); el.value=v }
+
+function lancParcelamentoChange(sel){
+  const val = sel.value
+  document.getElementById('lancParcelasWrap').style.display = val==='parcelado' ? 'block' : 'none'
+}
+
+function lancRecorrenciaChange(sel){
+  document.getElementById('lancRecorrenciaWrap').style.display = sel.value!=='nao' ? 'block' : 'none'
+}
+
+function showLancAlert(msg, t='error'){
+  const el = document.getElementById('lancAlert')
+  el.style.display = 'block'
+  el.style.background = t==='error' ? 'rgba(239,68,68,.08)' : 'rgba(16,185,129,.08)'
+  el.style.border = t==='error' ? '1px solid rgba(239,68,68,.3)' : '1px solid rgba(16,185,129,.3)'
+  el.style.color = t==='error' ? '#dc2626' : '#16a34a'
+  el.textContent = msg
+  el.scrollIntoView({behavior:'smooth', block:'nearest'})
+}
+
+async function lancSalvar(){
+  if(!APP.empresa){ showLancAlert('Selecione uma empresa antes de lançar.'); return }
+  const descricao = document.getElementById('lanc-descricao').value.trim()
+  const valorRaw  = document.getElementById('lanc-valor').value.replace(/\D/g,'')
+  const vencimento= document.getElementById('lanc-vencimento').value
+  const competencia = document.getElementById('lanc-competencia').value
+  if(!descricao){ showLancAlert('Descrição é obrigatória.'); return }
+  if(!valorRaw || valorRaw==='0'){ showLancAlert('Informe o valor do lançamento.'); return }
+  if(!vencimento){ showLancAlert('Informe a data de vencimento.'); return }
+  const valor = parseFloat(valorRaw)/100
+  const desconto = parseFloat((document.getElementById('lanc-desconto').value||'').replace(/\D/g,'')||0)/100
+  const juros    = parseFloat((document.getElementById('lanc-juros').value||'').replace(/\D/g,'')||0)/100
+  const multa    = parseFloat((document.getElementById('lanc-multa').value||'').replace(/\D/g,'')||0)/100
+  const valor_final = valor - desconto + juros + multa
+  const isDespesa = LANC_TIPO === 'pagar'
+  const btn = document.getElementById('lancBtnSalvar'); btn.textContent='Salvando...'; btn.disabled=true
+  try{
+    let payload, endpoint
+    if(isDespesa){
+      payload = {
+        cliente_bop_id: APP.empresa.id,
+        operador_id: OP_ID,
+        descricao, valor, desconto, juros, multa, valor_final,
+        data_competencia: competencia,
+        data_vencimento: vencimento,
+        pessoa_id: document.getElementById('lanc-forn').value || null,
+        categoria_id: null,
+        categoria_texto: document.getElementById('lanc-categoria').value || null,
+        centro_custo: document.getElementById('lanc-centro').value || null,
+        forma_pagamento: document.getElementById('lanc-forma').value || null,
+        conta_pagamento: document.getElementById('lanc-conta').value || null,
+        tipo_custo: document.getElementById('lanc-tipo-custo').value || 'variavel',
+        parcelamento: document.getElementById('lanc-parcelamento').value,
+        num_parcelas: parseInt(document.getElementById('lanc-num-parcelas')?.value||1),
+        recorrencia: document.getElementById('lanc-recorrencia').value!=='nao' ? document.getElementById('lanc-recorrencia').value : null,
+        numero_nf: document.getElementById('lanc-nf').value || null,
+        observacoes: document.getElementById('lanc-obs').value || null,
+        status: 'a_pagar'
+      }
+      endpoint = '/rest/v1/contas_pagar'
+    } else {
+      payload = {
+        cliente_bop_id: APP.empresa.id,
+        operador_id: OP_ID,
+        descricao, valor_total: valor, desconto, juros, multa, valor_final,
+        data_emissao: competencia,
+        data_vencimento: vencimento,
+        pessoa_id: document.getElementById('lanc-forn').value || null,
+        categoria_texto: document.getElementById('lanc-categoria').value || null,
+        centro_custo: document.getElementById('lanc-centro').value || null,
+        forma_recebimento: document.getElementById('lanc-forma').value || null,
+        conta_recebimento: document.getElementById('lanc-conta').value || null,
+        parcelamento: document.getElementById('lanc-parcelamento').value,
+        num_parcelas: parseInt(document.getElementById('lanc-num-parcelas')?.value||1),
+        recorrencia: document.getElementById('lanc-recorrencia').value!=='nao' ? document.getElementById('lanc-recorrencia').value : null,
+        numero_nf: document.getElementById('lanc-nf').value || null,
+        codigo_referencia: document.getElementById('lanc-codigo').value || null,
+        observacoes: document.getElementById('lanc-obs').value || null,
+        status: 'pendente'
+      }
+      endpoint = '/rest/v1/contas_receber'
+    }
+    let res
+    if(LANC_EDIT_ID) res = await fetch(SB+endpoint+'?id=eq.'+LANC_EDIT_ID, { method:'PATCH', headers:hdrsJson(), body:JSON.stringify(payload) })
+    else res = await fetch(SB+endpoint, { method:'POST', headers:hdrsJson(), body:JSON.stringify(payload) })
+    if(!res.ok){ const e=await res.json(); showLancAlert(e.message||'Erro ao salvar.'); return }
+    showLancAlert('Lançamento salvo com sucesso!', 'success')
+    setTimeout(()=>{ fecharModalLancamento(); LANC_TIPO==='pagar'?loadPagar():loadReceber() }, 900)
+  } catch(e){ showLancAlert('Erro de conexão.') }
+  finally{ btn.textContent='Salvar Lançamento'; btn.disabled=false }
+}
+
+// ── MODAL PAGAMENTO (baixa) ──────────────────────────────────────────────────
+let PAG_LANCAMENTO = null
+
+function abrirModalPagamento(lancamento, tipo){
+  PAG_LANCAMENTO = { ...lancamento, tipo }
+  const modal = document.getElementById('modalPagamento')
+  modal.classList.add('on')
+  document.getElementById('pagAlert').style.display = 'none'
+  const isPagar = tipo === 'pagar'
+  document.getElementById('pagTitle').textContent = isPagar ? 'Registrar Pagamento' : 'Registrar Recebimento'
+  document.getElementById('pagSub').textContent = lancamento.descricao || ''
+  document.getElementById('pag-valor').value = 'R$ ' + fmt(lancamento.valor || lancamento.valor_final || 0)
+  document.getElementById('pag-data').value = new Date().toISOString().split('T')[0]
+  document.getElementById('pag-juros').value = ''
+  document.getElementById('pag-multa').value = ''
+  document.getElementById('pag-desconto').value = ''
+  document.getElementById('pag-obs').value = ''
+  document.getElementById('pag-forma').value = ''
+  document.getElementById('pag-conta').value = ''
+  document.getElementById('pagComprovante').value = ''
+  document.getElementById('pagComprovanteNome').textContent = ''
+}
+
+function fecharModalPagamento(){ document.getElementById('modalPagamento').classList.remove('on') }
+
+function showPagAlert(msg, t='error'){
+  const el = document.getElementById('pagAlert')
+  el.style.display='block'; el.style.background=t==='error'?'rgba(239,68,68,.08)':'rgba(16,185,129,.08)';
+  el.style.border=t==='error'?'1px solid rgba(239,68,68,.3)':'1px solid rgba(16,185,129,.3)';
+  el.style.color=t==='error'?'#dc2626':'#16a34a'; el.textContent=msg
+}
+
+async function pagSalvar(){
+  const dataStr = document.getElementById('pag-data').value
+  if(!dataStr){ showPagAlert('Informe a data do pagamento.'); return }
+  const btn = document.getElementById('pagBtnSalvar'); btn.textContent='Registrando...'; btn.disabled=true
+  try{
+    const isPagar = PAG_LANCAMENTO.tipo === 'pagar'
+    const juros  = parseFloat((document.getElementById('pag-juros').value||'').replace(/\D/g,'')||0)/100
+    const multa  = parseFloat((document.getElementById('pag-multa').value||'').replace(/\D/g,'')||0)/100
+    const desc   = parseFloat((document.getElementById('pag-desconto').value||'').replace(/\D/g,'')||0)/100
+    const valorPago = (PAG_LANCAMENTO.valor||PAG_LANCAMENTO.valor_final||0) + juros + multa - desc
+    const endpoint = isPagar ? '/rest/v1/contas_pagar' : '/rest/v1/contas_receber'
+    const idCol    = isPagar ? 'id_despesa' : 'id_fatura'
+    const payload  = {
+      status: isPagar ? 'pago' : 'pago',
+      data_pagamento: dataStr,
+      juros_pagamento: juros,
+      multa_pagamento: multa,
+      desconto_pagamento: desc,
+      valor_pago: valorPago,
+      forma_pagamento: document.getElementById('pag-forma').value || null,
+      conta_pagamento: document.getElementById('pag-conta').value || null,
+      obs_pagamento: document.getElementById('pag-obs').value || null,
+    }
+    const res = await fetch(SB+endpoint+'?'+idCol+'=eq.'+PAG_LANCAMENTO.id, { method:'PATCH', headers:hdrsJson(), body:JSON.stringify(payload) })
+    if(!res.ok){ const e=await res.json(); showPagAlert(e.message||'Erro ao registrar.'); return }
+    // Upload comprovante
+    const file = document.getElementById('pagComprovante').files[0]
+    if(file && PAG_LANCAMENTO.id){
+      try{
+        const ext = file.name.split('.').pop()
+        const path = `comprovantes/${PAG_LANCAMENTO.id}.${ext}`
+        await fetch(`${SB}/storage/v1/object/financeiro/${path}`, {
+          method:'POST', headers:{...hdrs(),'Content-Type':file.type,'x-upsert':'true'}, body:file
+        })
+        const urlComp = `${SB}/storage/v1/object/public/financeiro/${path}`
+        await fetch(SB+endpoint+'?'+idCol+'=eq.'+PAG_LANCAMENTO.id, { method:'PATCH', headers:hdrsJson(), body:JSON.stringify({comprovante_url:urlComp}) })
+      } catch(e){ console.log('Comprovante não salvo:', e) }
+    }
+    showPagAlert('Pagamento registrado com sucesso!', 'success')
+    setTimeout(()=>{ fecharModalPagamento(); isPagar?loadPagar():loadReceber() }, 900)
+  } catch(e){ showPagAlert('Erro de conexão.') }
+  finally{ btn.textContent='Confirmar Pagamento'; btn.disabled=false }
+}
+
+// ── MODAL USUÁRIO ────────────────────────────────────────────────────────────
+let USR_EDIT_ID = null
+
+function abrirModalUsuario(editId=null){
+  USR_EDIT_ID = editId
+  document.getElementById('modalUsuario').classList.add('on')
+  document.getElementById('usrAlert').style.display = 'none'
+  document.getElementById('usrTitle').textContent = editId ? 'Editar Usuário' : 'Novo Usuário'
+  ;['usr-nome','usr-email','usr-senha'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value='' })
+  document.getElementById('usr-perfil').value = 'gestao'
+  document.getElementById('usr-empresa').value = ''
+  // Popula select de empresas
+  const sel = document.getElementById('usr-empresa')
+  sel.innerHTML = '<option value="">— Sem vínculo (admin/gestão global) —</option>' + APP.empresas.map(e=>`<option value="${e.id}">${e.nome_empresa}</option>`).join('')
+  // Mostrar/ocultar senha
+  document.getElementById('usrSenhaWrap').style.display = editId ? 'none' : 'block'
+  document.getElementById('usrSenhaDica').style.display = editId ? 'block' : 'none'
+  if(editId) usrCarregarDados(editId)
+}
+
+async function usrCarregarDados(id){
+  try{
+    const r = await fetch(SB+'/rest/v1/usuarios_sistema?id=eq.'+id+'&select=*', { headers:hdrs() })
+    if(r.ok){ const [d]=await r.json(); if(d){ document.getElementById('usr-nome').value=d.nome||''; document.getElementById('usr-email').value=d.email||''; document.getElementById('usr-perfil').value=d.perfil||'gestao'; document.getElementById('usr-empresa').value=d.cliente_bop_id||'' } }
+  } catch(e){}
+}
+
+function fecharModalUsuario(){ document.getElementById('modalUsuario').classList.remove('on') }
+
+function showUsrAlert(msg,t='error'){
+  const el=document.getElementById('usrAlert'); el.style.display='block';
+  el.style.background=t==='error'?'rgba(239,68,68,.08)':'rgba(16,185,129,.08)';
+  el.style.border=t==='error'?'1px solid rgba(239,68,68,.3)':'1px solid rgba(16,185,129,.3)';
+  el.style.color=t==='error'?'#dc2626':'#16a34a'; el.textContent=msg
+}
+
+function usrPerfilChange(sel){
+  const wrap = document.getElementById('usrEmpresaWrap')
+  wrap.style.display = sel.value==='exclusiva' ? 'block' : (sel.value==='gestao'?'block':'none')
+}
+
+async function usrSalvar(){
+  const nome  = document.getElementById('usr-nome').value.trim()
+  const email = document.getElementById('usr-email').value.trim()
+  const perfil= document.getElementById('usr-perfil').value
+  const senha = document.getElementById('usr-senha')?.value
+  const empresa_id = document.getElementById('usr-empresa').value || null
+  if(!nome){ showUsrAlert('Nome é obrigatório.'); return }
+  if(!email){ showUsrAlert('E-mail é obrigatório.'); return }
+  if(!USR_EDIT_ID && !senha){ showUsrAlert('Defina uma senha para o novo usuário.'); return }
+  const btn=document.getElementById('usrBtnSalvar'); btn.textContent='Salvando...'; btn.disabled=true
+  try{
+    // 1. Criar/atualizar no auth do Supabase via Admin (service role necessário — faz via tabela de convites)
+    // 2. Criar/atualizar na tabela usuarios_sistema
+    const payload = { nome, email, perfil, cliente_bop_id: empresa_id, ativo: true }
+    let res
+    if(USR_EDIT_ID){
+      res = await fetch(SB+'/rest/v1/usuarios_sistema?id=eq.'+USR_EDIT_ID, { method:'PATCH', headers:hdrsJson(), body:JSON.stringify(payload) })
+    } else {
+      // Verifica se email já existe
+      const check = await fetch(SB+'/rest/v1/usuarios_sistema?email=eq.'+encodeURIComponent(email), { headers:hdrs() })
+      if(check.ok){ const exist=await check.json(); if(exist.length){ showUsrAlert('Este e-mail já está cadastrado.'); btn.textContent='Salvar Usuário'; btn.disabled=false; return } }
+      res = await fetch(SB+'/rest/v1/usuarios_sistema', { method:'POST', headers:hdrsJson(), body:JSON.stringify({...payload, senha_hash:btoa(senha)}) })
+    }
+    if(!res.ok){ const e=await res.json(); showUsrAlert(e.message||'Erro ao salvar.'); return }
+    showUsrAlert(USR_EDIT_ID?'Usuário atualizado!':'Usuário criado! O acesso será liberado na próxima atualização.', 'success')
+    setTimeout(()=>{ fecharModalUsuario(); loadUsuarios() }, 1100)
+  } catch(e){ showUsrAlert('Erro de conexão.') }
+  finally{ btn.textContent='Salvar Usuário'; btn.disabled=false }
+}
+
+// ── ATUALIZAR loadPagar/loadReceber com botão Baixar ─────────────────────────
+// Override das tabelas para incluir ação de pagamento
+const _origLoadPagar = loadPagar
+window.loadPagar = async function(){
+  if(!APP.empresa) return
+  try{
+    const r = await fetch(`${SB}/rest/v1/contas_pagar?select=id,id_despesa,valor,data_vencimento,status,descricao,tipo_custo,pessoas(nome,razao_social)&cliente_bop_id=eq.${APP.empresa.id}&order=data_vencimento`, { headers:hdrs() })
+    if(!r.ok) return
+    const d = await r.json()
+    const tb = document.getElementById('tb-pagar')
+    if(!d.length){ tb.innerHTML='<tr><td colspan="9"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="empty-t">Nenhuma despesa</div><div class="empty-d">Clique em "Nova Despesa" para lançar.</div></div></td></tr>'; return }
+    // Adiciona coluna Ações com Baixar
+    tb.innerHTML = d.map(r=>{
+      const pago = r.status==='pago'
+      return `<tr>
+        <td class="fw7">${r.id_despesa||'—'}</td>
+        <td>${r.pessoas?.razao_social||r.pessoas?.nome||'—'}</td>
+        <td>${r.descricao}</td>
+        <td>${fmtDate(r.data_vencimento)}</td>
+        <td class="vn">R$ ${fmt(r.valor)}</td>
+        <td>${pillStatus(r.status)}</td>
+        <td>${r.tipo_custo==='fixo'?'Fixo':r.tipo_custo==='variavel'?'Variável':'—'}</td>
+        <td>${!pago?`<button onclick='abrirModalPagamento(${JSON.stringify({id:r.id,id_despesa:r.id_despesa,descricao:r.descricao,valor:r.valor})},"pagar")' style="background:var(--yellow);color:var(--purple-dk);border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">Baixar</button>`:''}</td>
+        <td><button class="act-btn" onclick='abrirModalLancamento("pagar","${r.id}")'>✏️</button></td>
+      </tr>`
+    }).join('')
+  } catch(e){}
+}
+
+const _origLoadReceber = loadReceber
+window.loadReceber = async function(){
+  if(!APP.empresa) return
+  try{
+    const r = await fetch(`${SB}/rest/v1/contas_receber?select=id,id_fatura,valor_total,valor_final,data_emissao,data_vencimento,status,descricao,pessoas(nome,razao_social)&cliente_bop_id=eq.${APP.empresa.id}&order=data_vencimento`, { headers:hdrs() })
+    if(!r.ok) return
+    const d = await r.json()
+    const tb = document.getElementById('tb-receber')
+    if(!d.length){ tb.innerHTML='<tr><td colspan="9"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="empty-t">Nenhuma fatura</div><div class="empty-d">Clique em "Nova Fatura" para lançar.</div></div></td></tr>'; return }
+    tb.innerHTML = d.map(r=>{
+      const pago = r.status==='pago'
+      return `<tr>
+        <td class="fw7">${r.id_fatura||'—'}</td>
+        <td>${r.pessoas?.razao_social||r.pessoas?.nome||'—'}</td>
+        <td>${r.descricao}</td>
+        <td>${fmtDate(r.data_emissao)}</td>
+        <td>${fmtDate(r.data_vencimento)}</td>
+        <td class="vp">R$ ${fmt(r.valor_final||r.valor_total)}</td>
+        <td>${pillStatus(r.status)}</td>
+        <td>${!pago?`<button onclick='abrirModalPagamento(${JSON.stringify({id:r.id,id_fatura:r.id_fatura,descricao:r.descricao,valor:r.valor_final||r.valor_total})},"receber")' style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">Receber</button>`:''}</td>
+        <td><button class="act-btn" onclick='abrirModalLancamento("receber","${r.id}")'>✏️</button></td>
+      </tr>`
+    }).join('')
+  } catch(e){}
+}
+
+</script>
+
+<!-- ═══ MODAL LANÇAMENTO FINANCEIRO ═══ -->
+<div class="modal-overlay" id="modalLancamento">
+  <div class="modal-box" style="max-width:720px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="lancTitle">Nova Despesa</div>
+        <div class="modal-sub" id="lancSub">Conta a Pagar</div>
+      </div>
+      <button class="modal-close" onclick="fecharModalLancamento()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="mp-alert" id="lancAlert"></div>
+    <div class="mp-body" style="max-height:70vh;overflow-y:auto">
+
+      <!-- Linha 1: Descrição (full width) -->
+      <div class="mp-f" style="margin-bottom:14px">
+        <label class="mp-l">Descrição / Histórico *</label>
+        <input id="lanc-descricao" type="text" class="mp-i" placeholder="Ex: Aluguel escritório Abril/2025, Honorários Contábeis..."/>
+      </div>
+
+      <!-- Linha 2: Fornecedor/Cliente + Categoria -->
+      <div class="mp-grid2" style="margin-bottom:14px">
+        <div class="mp-f">
+          <label class="mp-l" id="lancFornLabel">Fornecedor</label>
+          <select id="lanc-forn" class="mp-i" id="lancFornPlaceholder"><option value="">— Nenhum —</option></select>
+        </div>
+        <div class="mp-f">
+          <label class="mp-l">Categoria *</label>
+          <select id="lanc-categoria" class="mp-i"><option value="">Selecionar...</option></select>
+        </div>
+      </div>
+
+      <!-- Linha 3: Competência + Vencimento + Tipo -->
+      <div class="mp-grid3" style="margin-bottom:14px">
+        <div class="mp-f">
+          <label class="mp-l">Data de Competência *</label>
+          <input id="lanc-competencia" type="date" class="mp-i"/>
+        </div>
+        <div class="mp-f">
+          <label class="mp-l">Data de Vencimento *</label>
+          <input id="lanc-vencimento" type="date" class="mp-i"/>
+        </div>
+        <div class="mp-f">
+          <label class="mp-l">Tipo de Custo</label>
+          <select id="lanc-tipo-custo" class="mp-i">
+            <option value="variavel">Variável</option>
+            <option value="fixo">Fixo</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Linha 4: Valor + Desconto + Juros + Multa -->
+      <div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-bottom:14px;border:1px solid var(--gray-300)">
+        <div style="font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--gray-400);margin-bottom:10px">💰 Valores</div>
+        <div class="mp-grid2" style="gap:10px">
+          <div class="mp-f">
+            <label class="mp-l" id="lancValorLabel">Valor da Despesa *</label>
+            <input id="lanc-valor" type="text" class="mp-i" placeholder="R$ 0,00" oninput="lancMaskMoeda(this)"/>
+          </div>
+          <div class="mp-f">
+            <label class="mp-l">Desconto (R$)</label>
+            <input id="lanc-desconto" type="text" class="mp-i" placeholder="R$ 0,00" oninput="lancMaskMoeda(this)"/>
+          </div>
+          <div class="mp-f">
+            <label class="mp-l">Juros (R$)</label>
+            <input id="lanc-juros" type="text" class="mp-i" placeholder="R$ 0,00" oninput="lancMaskMoeda(this)"/>
+          </div>
+          <div class="mp-f">
+            <label class="mp-l">Multa (R$)</label>
+            <input id="lanc-multa" type="text" class="mp-i" placeholder="R$ 0,00" oninput="lancMaskMoeda(this)"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linha 5: Parcelamento + Recorrência -->
+      <div class="mp-grid2" style="margin-bottom:14px">
+        <div class="mp-f">
+          <label class="mp-l">Condição de Pagamento</label>
+          <select id="lanc-parcelamento" class="mp-i" onchange="lancParcelamentoChange(this)">
+            <option value="avista">À Vista</option>
+            <option value="parcelado">Parcelado</option>
+          </select>
+        </div>
+        <div class="mp-f" id="lancParcelasWrap" style="display:none">
+          <label class="mp-l">Número de Parcelas</label>
+          <select id="lanc-num-parcelas" class="mp-i">
+            <option value="2">2x</option><option value="3">3x</option><option value="4">4x</option>
+            <option value="5">5x</option><option value="6">6x</option><option value="12">12x</option>
+            <option value="24">24x</option><option value="36">36x</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Recorrência -->
+      <div class="mp-grid2" style="margin-bottom:14px">
+        <div class="mp-f">
+          <label class="mp-l">🔄 Recorrência</label>
+          <select id="lanc-recorrencia" class="mp-i" onchange="lancRecorrenciaChange(this)">
+            <option value="nao">Não se repete</option>
+            <option value="mensal">Mensal</option>
+            <option value="bimestral">Bimestral</option>
+            <option value="trimestral">Trimestral</option>
+            <option value="semestral">Semestral</option>
+            <option value="anual">Anual</option>
+          </select>
+        </div>
+        <div class="mp-f" id="lancRecorrenciaWrap" style="display:none">
+          <label class="mp-l">Qtd. Ocorrências</label>
+          <select id="lanc-ocorrencias" class="mp-i">
+            <option value="12">12 meses</option><option value="24">24 meses</option>
+            <option value="36">36 meses</option><option value="60">60 meses</option>
+            <option value="0">Indeterminado</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Linha 6: Forma pagamento + Conta + Centro de Custo -->
+      <div class="mp-grid3" style="margin-bottom:14px">
+        <div class="mp-f">
+          <label class="mp-l">Forma de Pagamento</label>
+          <select id="lanc-forma" class="mp-i">
+            <option value="">Selecionar...</option>
+            <option value="pix">PIX</option>
+            <option value="ted">TED / DOC</option>
+            <option value="boleto">Boleto</option>
+            <option value="cartao_credito">Cartão de Crédito</option>
+            <option value="cartao_debito">Cartão de Débito</option>
+            <option value="dinheiro">Dinheiro</option>
+            <option value="cheque">Cheque</option>
+          </select>
+        </div>
+        <div class="mp-f">
+          <label class="mp-l">Conta Bancária</label>
+          <select id="lanc-conta" class="mp-i">
+            <option value="">Selecionar...</option>
+            <option value="conta_corrente">Conta Corrente</option>
+            <option value="conta_poupanca">Conta Poupança</option>
+            <option value="caixa">Caixa</option>
+          </select>
+        </div>
+        <div class="mp-f">
+          <label class="mp-l">Centro de Custo</label>
+          <input id="lanc-centro" type="text" class="mp-i" placeholder="Administrativo, Operacional..."/>
+        </div>
+      </div>
+
+      <!-- Linha 7: NF + Código + Obs -->
+      <div class="mp-grid2" style="margin-bottom:14px">
+        <div class="mp-f">
+          <label class="mp-l">Número NF / Documento</label>
+          <input id="lanc-nf" type="text" class="mp-i" placeholder="NF-e, RPS, Recibo..."/>
+        </div>
+        <div class="mp-f">
+          <label class="mp-l">Código / Referência</label>
+          <input id="lanc-codigo" type="text" class="mp-i" placeholder="Código interno ou do cliente"/>
+        </div>
+      </div>
+      <div class="mp-f" style="margin-bottom:4px">
+        <label class="mp-l">Observações</label>
+        <textarea id="lanc-obs" class="mp-i" rows="2" placeholder="Informações adicionais sobre este lançamento..."></textarea>
+      </div>
+
+      <!-- Dica IA -->
+      <div style="background:linear-gradient(135deg,#f5eef7,#faf7fc);border:1px solid rgba(103,30,117,.15);border-radius:10px;padding:11px 14px;margin-top:12px;display:flex;gap:9px;align-items:flex-start">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#671e75" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        <div style="font-size:11px;color:var(--purple);line-height:1.6"><strong>Agente IA:</strong> Preencha categoria e centro de custo para que o agente consiga classificar e sugerir lançamentos futuros automaticamente.</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div class="modal-note">* Campos obrigatórios</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="fecharModalLancamento()" style="background:var(--white);border:1px solid var(--gray-300);border-radius:8px;padding:9px 18px;font-family:Barlow,sans-serif;font-size:13px;font-weight:600;color:var(--gray-600);cursor:pointer">Cancelar</button>
+        <button onclick="lancSalvar()" id="lancBtnSalvar" style="background:var(--purple);border:none;border-radius:8px;padding:9px 22px;font-family:Barlow,sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer">Salvar Lançamento</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL REGISTRO DE PAGAMENTO ═══ -->
+<div class="modal-overlay" id="modalPagamento">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="pagTitle">Registrar Pagamento</div>
+        <div class="modal-sub" id="pagSub"></div>
+      </div>
+      <button class="modal-close" onclick="fecharModalPagamento()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="mp-alert" id="pagAlert"></div>
+    <div class="mp-body">
+      <div class="mp-grid2" style="margin-bottom:14px">
+        <div class="mp-f">
+          <label class="mp-l">Valor Original</label>
+          <input id="pag-valor" type="text" class="mp-i" readonly style="background:var(--gray-100);font-weight:700"/>
+        </div>
+        <div class="mp-f">
+          <label class="mp-l">Data do Pagamento *</label>
+          <input id="pag-data" type="date" class="mp-i"/>
+        </div>
+      </div>
+      <div class="mp-grid3" style="margin-bottom:14px">
+        <div class="mp-f">
+          <label class="mp-l">Juros (R$)</label>
+          <input id="pag-juros" type="text" class="mp-i" placeholder="R$ 0,00" oninput="lancMaskMoeda(this)"/>
+        </div>
+        <div class="mp-f">
+          <label class="mp-l">Multa (R$)</label>
+          <input id="pag-multa" type="text" class="mp-i" placeholder="R$ 0,00" oninput="lancMaskMoeda(this)"/>
+        </div>
+        <div class="mp-f">
+          <label class="mp-l">Desconto (R$)</label>
+          <input id="pag-desconto" type="text" class="mp-i" placeholder="R$ 0,00" oninput="lancMaskMoeda(this)"/>
+        </div>
+      </div>
+      <div class="mp-grid2" style="margin-bottom:14px">
+        <div class="mp-f">
+          <label class="mp-l">Forma de Pagamento</label>
+          <select id="pag-forma" class="mp-i">
+            <option value="">Selecionar...</option>
+            <option value="pix">PIX</option>
+            <option value="ted">TED / DOC</option>
+            <option value="boleto">Boleto</option>
+            <option value="cartao_credito">Cartão de Crédito</option>
+            <option value="cartao_debito">Cartão de Débito</option>
+            <option value="dinheiro">Dinheiro</option>
+          </select>
+        </div>
+        <div class="mp-f">
+          <label class="mp-l">Conta Bancária</label>
+          <select id="pag-conta" class="mp-i">
+            <option value="">Selecionar...</option>
+            <option value="conta_corrente">Conta Corrente</option>
+            <option value="caixa">Caixa</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Comprovante -->
+      <div style="background:var(--gray-100);border-radius:10px;padding:14px;border:1px solid var(--gray-300);margin-bottom:14px">
+        <div style="font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--gray-400);margin-bottom:10px">📎 Comprovante (opcional)</div>
+        <div style="border:2px dashed var(--gray-300);border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:all .2s"
+          onclick="document.getElementById('pagComprovante').click()"
+          ondragover="event.preventDefault();this.style.borderColor='var(--purple)'"
+          ondragleave="this.style.borderColor='var(--gray-300)'"
+          ondrop="event.preventDefault();document.getElementById('pagComprovante').files=event.dataTransfer.files;document.getElementById('pagComprovanteNome').textContent=event.dataTransfer.files[0]?.name||''">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:6px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div style="font-size:12px;color:var(--gray-600);font-weight:500">Clique ou arraste o comprovante</div>
+          <div style="font-size:10px;color:var(--gray-400);margin-top:3px">PDF, JPG, PNG — máx. 10 MB</div>
+          <div id="pagComprovanteNome" style="font-size:11px;color:var(--purple);font-weight:600;margin-top:6px"></div>
+          <input type="file" id="pagComprovante" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="document.getElementById('pagComprovanteNome').textContent=this.files[0]?.name||''"/>
+        </div>
+      </div>
+
+      <div class="mp-f">
+        <label class="mp-l">Observação do Pagamento</label>
+        <textarea id="pag-obs" class="mp-i" rows="2" placeholder="Ex: Pago com atraso, desconto negociado..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div class="modal-note">A baixa é irreversível após confirmação</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="fecharModalPagamento()" style="background:var(--white);border:1px solid var(--gray-300);border-radius:8px;padding:9px 18px;font-family:Barlow,sans-serif;font-size:13px;font-weight:600;color:var(--gray-600);cursor:pointer">Cancelar</button>
+        <button onclick="pagSalvar()" id="pagBtnSalvar" style="background:#16a34a;border:none;border-radius:8px;padding:9px 22px;font-family:Barlow,sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer">Confirmar Pagamento</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL USUÁRIO ═══ -->
+<div class="modal-overlay" id="modalUsuario">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="usrTitle">Novo Usuário</div>
+        <div class="modal-sub">Crie acessos para equipe ou clientes</div>
+      </div>
+      <button class="modal-close" onclick="fecharModalUsuario()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="mp-alert" id="usrAlert"></div>
+    <div class="mp-body">
+      <div class="mp-f" style="margin-bottom:12px">
+        <label class="mp-l">Nome Completo *</label>
+        <input id="usr-nome" type="text" class="mp-i" placeholder="Nome do usuário"/>
+      </div>
+      <div class="mp-f" style="margin-bottom:12px">
+        <label class="mp-l">E-mail de Acesso *</label>
+        <input id="usr-email" type="email" class="mp-i" placeholder="usuario@empresa.com.br"/>
+      </div>
+      <div id="usrSenhaWrap" style="margin-bottom:12px">
+        <div class="mp-f">
+          <label class="mp-l">Senha Inicial *</label>
+          <input id="usr-senha" type="password" class="mp-i" placeholder="Mínimo 6 caracteres"/>
+        </div>
+      </div>
+      <div id="usrSenhaDica" style="display:none;background:var(--gray-100);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--gray-600);margin-bottom:12px;line-height:1.6">
+        🔒 Para alterar a senha do usuário, peça que ele use "Esqueci minha senha" na tela de login.
+      </div>
+
+      <div class="mp-f" style="margin-bottom:12px">
+        <label class="mp-l">Perfil de Acesso *</label>
+        <select id="usr-perfil" class="mp-i" onchange="usrPerfilChange(this)">
+          <option value="gestao">Gestão — Equipe interna (acesso completo à plataforma)</option>
+          <option value="exclusiva">Cliente — Somente leitura dos próprios dados</option>
+          <option value="admin">Admin — Exclusiva Assessoria (acesso total)</option>
+        </select>
+      </div>
+
+      <!-- Detalhes dos perfis -->
+      <div style="background:var(--purple-pale);border:1px solid rgba(103,30,117,.12);border-radius:9px;padding:12px 14px;margin-bottom:14px;font-size:11px;color:var(--purple);line-height:1.7">
+        <strong>📋 Níveis de acesso:</strong><br>
+        🔵 <strong>Admin</strong> — Acesso total, gerencia usuários, todas as empresas e configurações<br>
+        🟣 <strong>Gestão</strong> — Acesso completo ao módulo financeiro e cadastros (sem gerenciar usuários)<br>
+        🟡 <strong>Cliente</strong> — Visualiza apenas os próprios dados (contas, faturas) — somente leitura
+      </div>
+
+      <div class="mp-f" id="usrEmpresaWrap">
+        <label class="mp-l">Empresa Vinculada <span style="font-size:9px;color:var(--purple)">(obrigatório para perfil Cliente)</span></label>
+        <select id="usr-empresa" class="mp-i">
+          <option value="">— Sem vínculo (acesso global) —</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div class="modal-note">* Campos obrigatórios</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="fecharModalUsuario()" style="background:var(--white);border:1px solid var(--gray-300);border-radius:8px;padding:9px 18px;font-family:Barlow,sans-serif;font-size:13px;font-weight:600;color:var(--gray-600);cursor:pointer">Cancelar</button>
+        <button onclick="usrSalvar()" id="usrBtnSalvar" style="background:var(--purple);border:none;border-radius:8px;padding:9px 22px;font-family:Barlow,sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer">Salvar Usuário</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>
