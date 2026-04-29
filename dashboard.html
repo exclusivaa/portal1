@@ -1716,33 +1716,55 @@ function usrPerfilChange(sel){
 }
 
 async function usrSalvar(){
-  const nome  = document.getElementById('usr-nome').value.trim()
-  const email = document.getElementById('usr-email').value.trim()
-  const perfil= document.getElementById('usr-perfil').value
-  const senha = document.getElementById('usr-senha')?.value
+  const nome     = document.getElementById('usr-nome').value.trim()
+  const email    = document.getElementById('usr-email').value.trim()
+  const perfil   = document.getElementById('usr-perfil').value
+  const senha    = document.getElementById('usr-senha')?.value
   const empresa_id = document.getElementById('usr-empresa').value || null
-  if(!nome){ showUsrAlert('Nome é obrigatório.'); return }
-  if(!email){ showUsrAlert('E-mail é obrigatório.'); return }
-  if(!USR_EDIT_ID && !senha){ showUsrAlert('Defina uma senha para o novo usuário.'); return }
-  const btn=document.getElementById('usrBtnSalvar'); btn.textContent='Salvando...'; btn.disabled=true
-  try{
-    // 1. Criar/atualizar no auth do Supabase via Admin (service role necessário — faz via tabela de convites)
-    // 2. Criar/atualizar na tabela usuarios_sistema
-    const payload = { nome, email, perfil_acesso: perfil, cliente_bop_id: empresa_id, ativo: true }
+
+  if(!nome||!email||!perfil){ showUsrAlert('Preencha todos os campos obrigatórios.','error'); return }
+  if(!USR_EDIT_ID && !senha){ showUsrAlert('Defina uma senha para o novo usuário.','error'); return }
+
+  const payload = { nome, email, perfil_acesso: perfil, cliente_bop_id: empresa_id||null, ativo: true }
+
+  try {
     let res
     if(USR_EDIT_ID){
-      res = await fetch(SB+'/rest/v1/usuarios_sistema?id=eq.'+USR_EDIT_ID, { method:'PATCH', headers:hdrsJson(), body:JSON.stringify(payload) })
+      // Atualizar dados (sem alterar senha)
+      res = await fetch(SB+'/rest/v1/usuarios_sistema?id=eq.'+USR_EDIT_ID, {
+        method:'PATCH', headers:hdrsJson(), body:JSON.stringify({ nome, perfil_acesso: perfil, cliente_bop_id: empresa_id||null })
+      })
+      if(!res.ok){ const e=await res.json(); showUsrAlert(e.message||'Erro ao atualizar.','error'); return }
     } else {
-      // Verifica se email já existe
+      // Verificar se email já existe
       const check = await fetch(SB+'/rest/v1/usuarios_sistema?email=eq.'+encodeURIComponent(email), { headers:hdrs() })
-      if(check.ok){ const exist=await check.json(); if(exist.length){ showUsrAlert('Este e-mail já está cadastrado.'); btn.textContent='Salvar Usuário'; btn.disabled=false; return } }
-      res = await fetch(SB+'/rest/v1/usuarios_sistema', { method:'POST', headers:hdrsJson(), body:JSON.stringify({...payload, senha_hash:btoa(senha)}) })
+      const exists = await check.json()
+      if(Array.isArray(exists)&&exists.length>0){ showUsrAlert('E-mail já cadastrado.','error'); return }
+
+      // Criar no Supabase Auth
+      const authRes = await fetch(SB+'/auth/v1/signup', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', 'apikey': AK },
+        body: JSON.stringify({ email, password: senha, data: { nome_completo: nome, perfil } })
+      })
+      const authData = await authRes.json()
+      if(authData.error){ showUsrAlert(authData.error.message||'Erro ao criar acesso.','error'); return }
+      const auth_user_id = authData.user?.id || null
+
+      // Inserir em usuarios_sistema (só colunas válidas)
+      res = await fetch(SB+'/rest/v1/usuarios_sistema', {
+        method:'POST', headers:hdrsJson(),
+        body: JSON.stringify({ ...payload, auth_user_id, operador_id: OP_ID })
+      })
+      if(!res.ok){ const e=await res.json(); showUsrAlert(e.message||'Erro ao registrar usuário.','error'); return }
     }
-    if(!res.ok){ const e=await res.json(); showUsrAlert(e.message||'Erro ao salvar.'); return }
-    showUsrAlert(USR_EDIT_ID?'Usuário atualizado!':'Usuário criado! O acesso será liberado na próxima atualização.', 'success')
-    setTimeout(()=>{ fecharModalUsuario(); loadUsuarios() }, 1100)
-  } catch(e){ showUsrAlert('Erro de conexão.') }
-  finally{ btn.textContent='Salvar Usuário'; btn.disabled=false }
+
+    fecharModalUsuario()
+    loadUsuarios()
+    showUsrAlert('Usuário salvo com sucesso!','success')
+  } catch(e){
+    showUsrAlert('Erro: '+e.message,'error')
+  }
 }
 
 // ── ATUALIZAR loadPagar/loadReceber com botão Baixar ─────────────────────────
