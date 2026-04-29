@@ -1716,23 +1716,21 @@ function usrPerfilChange(sel){
 }
 
 async function usrSalvar(){
-  const nome     = document.getElementById('usr-nome').value.trim()
-  const email    = document.getElementById('usr-email').value.trim()
-  const perfil   = document.getElementById('usr-perfil').value
-  const senha    = document.getElementById('usr-senha')?.value
+  const nome       = document.getElementById('usr-nome').value.trim()
+  const email      = document.getElementById('usr-email').value.trim()
+  const perfil     = document.getElementById('usr-perfil').value
+  const senha      = document.getElementById('usr-senha')?.value
   const empresa_id = document.getElementById('usr-empresa').value || null
 
   if(!nome||!email||!perfil){ showUsrAlert('Preencha todos os campos obrigatórios.','error'); return }
   if(!USR_EDIT_ID && !senha){ showUsrAlert('Defina uma senha para o novo usuário.','error'); return }
 
-  const payload = { nome, email, perfil_acesso: perfil, cliente_bop_id: empresa_id||null, ativo: true }
-
   try {
-    let res
     if(USR_EDIT_ID){
-      // Atualizar dados (sem alterar senha)
-      res = await fetch(SB+'/rest/v1/usuarios_sistema?id=eq.'+USR_EDIT_ID, {
-        method:'PATCH', headers:hdrsJson(), body:JSON.stringify({ nome, perfil_acesso: perfil, cliente_bop_id: empresa_id||null })
+      // Editar: atualiza só campos editáveis
+      const res = await fetch(SB+'/rest/v1/usuarios_sistema?id=eq.'+USR_EDIT_ID, {
+        method:'PATCH', headers:hdrsJson(),
+        body:JSON.stringify({ nome, perfil_acesso: perfil, cliente_bop_id: empresa_id })
       })
       if(!res.ok){ const e=await res.json(); showUsrAlert(e.message||'Erro ao atualizar.','error'); return }
     } else {
@@ -1741,24 +1739,20 @@ async function usrSalvar(){
       const exists = await check.json()
       if(Array.isArray(exists)&&exists.length>0){ showUsrAlert('E-mail já cadastrado.','error'); return }
 
-      // Criar no Supabase Auth
-      const authRes = await fetch(SB+'/auth/v1/signup', {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json', 'apikey': AK },
-        body: JSON.stringify({ email, password: senha, data: { nome_completo: nome, perfil } })
-      })
-      const authData = await authRes.json()
-      if(authData.error){ showUsrAlert(authData.error.message||'Erro ao criar acesso.','error'); return }
-      const auth_user_id = authData.user?.id || null
-
-      // Inserir em usuarios_sistema (só colunas válidas)
-      res = await fetch(SB+'/rest/v1/usuarios_sistema', {
+      // Inserir novo usuário
+      const res = await fetch(SB+'/rest/v1/usuarios_sistema', {
         method:'POST', headers:hdrsJson(),
-        body: JSON.stringify({ ...payload, auth_user_id, operador_id: OP_ID })
+        body: JSON.stringify({
+          auth_user_id: crypto.randomUUID(),
+          operador_id:  OP_ID,
+          nome, email,
+          perfil_acesso: perfil,
+          cliente_bop_id: empresa_id,
+          ativo: true
+        })
       })
-      if(!res.ok){ const e=await res.json(); showUsrAlert(e.message||'Erro ao registrar usuário.','error'); return }
+      if(!res.ok){ const e=await res.json(); showUsrAlert(e.message||'Erro ao salvar.','error'); return }
     }
-
     fecharModalUsuario()
     loadUsuarios()
     showUsrAlert('Usuário salvo com sucesso!','success')
