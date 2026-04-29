@@ -756,14 +756,39 @@ const APP = { session: null, empresa: null, empresas: [], pessoas: [], view: 'no
 function initAuth(){
   try{
     const s = JSON.parse(localStorage.getItem("ea_sessao")||"null")
-    if(!s?.access_token||s.expires_at<Date.now()){ window.location.href='/index.html'; return }
+    if(!s?.access_token){ window.location.href='/index.html'; return }
+    // Supabase expires_at is in SECONDS, Date.now() is in ms - fix comparison
+    const expiresMs = s.expires_at * 1000
+    if(expiresMs < Date.now()){
+      // Token expired - try to refresh
+      if(!s.refresh_token){ localStorage.removeItem("ea_sessao"); window.location.href='/index.html'; return }
+      fetch("https://ckfuwprixltrqzrupztc.supabase.co/auth/v1/token?grant_type=refresh_token", {
+        method:"POST",
+        headers:{"Content-Type":"application/json","apikey":AK},
+        body:JSON.stringify({refresh_token:s.refresh_token})
+      }).then(r=>r.json()).then(d=>{
+        if(d.access_token){
+          const newS = {...s, access_token:d.access_token, refresh_token:d.refresh_token, expires_at:d.expires_at}
+          localStorage.setItem("ea_sessao", JSON.stringify(newS))
+          APP.session = newS
+          aplicarSessao(newS)
+        } else {
+          localStorage.removeItem("ea_sessao"); window.location.href='/index.html'
+        }
+      }).catch(()=>{ window.location.href='/index.html' })
+      return
+    }
     APP.session = s
-    const email = s.user?.email||""
-    const nome = email.split("@")[0]
-    document.getElementById("userName").textContent = nome.charAt(0).toUpperCase()+nome.slice(1)
-    document.getElementById("userAv").textContent = nome.substring(0,2).toUpperCase()
-    loadEmpresas()
+    aplicarSessao(s)
   } catch { window.location.href='/index.html' }
+}
+function aplicarSessao(s){
+  APP.session = s
+  const nome = s.user_metadata?.nome_completo || s.email || "Usuário"
+  document.getElementById("userName").textContent = nome
+  document.getElementById("userRole").textContent = s.user_metadata?.perfil || "gestao"
+  document.getElementById("userAv").textContent = nome.substring(0,2).toUpperCase()
+  loadEmpresas()
 }
 
 function hdrs(){ return { "apikey":AK, "Authorization":"Bearer "+APP.session.access_token } }
