@@ -260,7 +260,27 @@ textarea.mp-i{min-height:68px;resize:vertical}
       <div class="si" id="si-receber" onclick="go('receber')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
         Contas a Receber
+      
+      <div class="si" id="si-fluxo-diario" onclick="go('fluxo-diario')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Fluxo de Caixa Diário
       </div>
+      <div class="si" id="si-fluxo-mensal" onclick="go('fluxo-mensal')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Fluxo de Caixa Mensal
+      </div>
+      <div class="si" id="si-extrato" onclick="go('extrato')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Extrato de Movimentações
+      </div>
+      <div class="si" id="si-dre" onclick="go('dre')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        DRE
+      </div>
+      <div class="si" id="si-conciliacao" onclick="go('conciliacao')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Conciliação Bancária
+      </div></div>
     </div>
 
     <!-- Cadastros -->
@@ -902,27 +922,25 @@ function pillStatus(s){
 }
 
 async function loadPagar(){
-  if(!APP.empresa) return
   try{
-    const r = await fetch(`${SB}/rest/v1/contas_pagar?select=id_despesa,valor,data_vencimento,status,descricao,tipo_custo,pessoas(nome,razao_social)&cliente_bop_id=eq.${APP.empresa.id}&order=data_vencimento`, { headers:hdrs() })
-    if(!r.ok) return
+    const emp = APP.empresa
+    const q = emp ? `&cliente_bop_id=eq.${emp.id}` : ''
+    const r = await fetch(`${SB}/rest/v1/contas_pagar?select=id,id_despesa,descricao,valor,data_vencimento,data_pagamento,status,pessoa_id,categoria_id,obs_interna,link_comprovante${q}&order=data_vencimento.asc`, {headers:hdrs()})
     const d = await r.json()
-    const tb = document.getElementById("tb-pagar")
-    if(!d.length){ tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="empty-t">Nenhuma despesa</div><div class="empty-d">Clique em "Nova Despesa" para lançar.</div></div></td></tr>'; return }
-    tb.innerHTML=d.map(r=>`<tr><td class="fw7">${r.id_despesa}</td><td>${r.pessoas?.razao_social||r.pessoas?.nome||"—"}</td><td>${r.descricao}</td><td>${fmtDate(r.data_vencimento)}</td><td class="vn">R$ ${fmt(r.valor)}</td><td>${pillStatus(r.status)}</td><td>${r.tipo_custo==="fixo"?"Fixo":r.tipo_custo==="variavel"?"Variável":"—"}</td><td><button class="act-btn">⋯</button></td></tr>`).join("")
-  } catch(e){}
+    APP.pagarList = Array.isArray(d) ? d : []
+    renderPagar(APP.pagarList)
+  } catch(e){ console.error('loadPagar',e) }
 }
 
 async function loadReceber(){
-  if(!APP.empresa) return
   try{
-    const r = await fetch(`${SB}/rest/v1/contas_receber?select=id_fatura,valor_total,valor_final,data_emissao,data_vencimento,status,descricao,pessoas(nome,razao_social)&cliente_bop_id=eq.${APP.empresa.id}&order=data_vencimento`, { headers:hdrs() })
-    if(!r.ok) return
+    const emp = APP.empresa
+    const q = emp ? `&cliente_bop_id=eq.${emp.id}` : ''
+    const r = await fetch(`${SB}/rest/v1/contas_receber?select=id,id_fatura,descricao,valor_total,valor_final,data_vencimento,data_pagamento,status,pessoa_id,obs_interna,link_nf${q}&order=data_vencimento.asc`, {headers:hdrs()})
     const d = await r.json()
-    const tb = document.getElementById("tb-receber")
-    if(!d.length){ tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="empty-ico"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="empty-t">Nenhuma fatura</div><div class="empty-d">Clique em "Nova Fatura" para lançar.</div></div></td></tr>'; return }
-    tb.innerHTML=d.map(r=>`<tr><td class="fw7">${r.id_fatura}</td><td>${r.pessoas?.razao_social||r.pessoas?.nome||"—"}</td><td>${r.descricao}</td><td>${fmtDate(r.data_emissao)}</td><td>${fmtDate(r.data_vencimento)}</td><td class="vp">R$ ${fmt(r.valor_final||r.valor_total)}</td><td>${pillStatus(r.status)}</td><td><button class="act-btn">⋯</button></td></tr>`).join("")
-  } catch(e){}
+    APP.receberList = Array.isArray(d) ? d : []
+    renderReceber(APP.receberList)
+  } catch(e){ console.error('loadReceber',e) }
 }
 
 function abrirLancamento(tipo){ abrirModalLancamento(tipo) }
@@ -1816,6 +1834,419 @@ window.loadReceber = async function(){
   } catch(e){}
 }
 
+
+
+// ══════════════════════════════════════════════════════════════════
+// MÓDULO FINANCEIRO — FUNÇÕES
+// ══════════════════════════════════════════════════════════════════
+
+// ── helpers ──
+function mFmt(v){ return 'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) }
+function fmtD(d){ return d ? new Date(d+'T00:00:00').toLocaleDateString('pt-BR') : '—' }
+function addDays(d,n){ const dt=new Date(d); dt.setDate(dt.getDate()+n); return dt.toISOString().split('T')[0] }
+function today(){ return new Date().toISOString().split('T')[0] }
+function firstDayMonth(){ const d=new Date(); return new Date(d.getFullYear(),d.getMonth(),1).toISOString().split('T')[0] }
+function lastDayMonth(){ const d=new Date(); return new Date(d.getFullYear(),d.getMonth()+1,0).toISOString().split('T')[0] }
+
+// ── go() extension for new sections ──
+const _goOrig = typeof go === 'function' ? go : null;
+function go(sec){
+  // hide all sections
+  document.querySelectorAll('[id^="v-"]').forEach(el=>el.classList.add('hidden'));
+  document.querySelectorAll('.si,.ni').forEach(el=>el.classList.remove('active'));
+  // show requested
+  const el = document.getElementById('v-'+sec);
+  if(el){ el.classList.remove('hidden'); const si=document.getElementById('si-'+sec); if(si) si.classList.add('active'); }
+  // load data
+  if(sec==='pagar') loadPagar();
+  else if(sec==='receber') loadReceber();
+  else if(sec==='fluxo-diario'){ initFluxoDiario(); loadFluxoDiario(); }
+  else if(sec==='fluxo-mensal'){ initFluxoMensal(); loadFluxoMensal(); }
+  else if(sec==='extrato'){ initExtrato(); loadExtrato(); }
+  else if(sec==='dre'){ initDRE(); loadDRE(); }
+  else if(sec==='conciliacao') initConciliacao();
+  else if(sec==='dash') loadDash && loadDash();
+  else if(sec==='empresas') loadEmpresas && loadEmpresas();
+  else if(sec==='pessoas') loadPessoas && loadPessoas();
+  else if(sec==='colab') loadColab && loadColab();
+  else if(sec==='usuarios') loadUsuarios && loadUsuarios();
+}
+
+// ══ FLUXO DE CAIXA DIÁRIO ════════════════════════════════════════
+function initFluxoDiario(){
+  const ini=document.getElementById('fluxo-data-ini'), fim=document.getElementById('fluxo-data-fim');
+  if(!ini.value){ ini.value=firstDayMonth(); fim.value=lastDayMonth(); }
+}
+
+async function loadFluxoDiario(){
+  const ini=document.getElementById('fluxo-data-ini').value, fim=document.getElementById('fluxo-data-fim').value;
+  if(!ini||!fim) return;
+  const emp=APP.empresa, q=emp?`&cliente_bop_id=eq.${emp.id}`:'';
+  try{
+    const [rp,rr]=await Promise.all([
+      fetch(`${SB}/rest/v1/contas_pagar?select=valor,data_vencimento,data_pagamento,status&data_vencimento=gte.${ini}&data_vencimento=lte.${fim}${q}`,{headers:hdrs()}),
+      fetch(`${SB}/rest/v1/contas_receber?select=valor_total,valor_final,data_vencimento,data_pagamento,status&data_vencimento=gte.${ini}&data_vencimento=lte.${fim}${q}`,{headers:hdrs()})
+    ]);
+    const pagar=await rp.json(), receber=await rr.json();
+    const pagarOk=Array.isArray(pagar)?pagar:[], receberOk=Array.isArray(receber)?receber:[];
+
+    // Calcular KPIs
+    const entradas=receberOk.filter(r=>r.status==='pago'||r.status==='recebido').reduce((a,r)=>a+parseFloat(r.valor_final||r.valor_total||0),0);
+    const saidas=pagarOk.filter(p=>p.status==='pago').reduce((a,p)=>a+parseFloat(p.valor||0),0);
+    const vencer7=pagarOk.filter(p=>p.status==='a_pagar'&&p.data_vencimento>=today()&&p.data_vencimento<=addDays(today(),7)).reduce((a,p)=>a+parseFloat(p.valor||0),0);
+
+    document.getElementById('fd-entradas').textContent=mFmt(entradas);
+    document.getElementById('fd-saidas').textContent=mFmt(saidas);
+    const saldo=entradas-saidas;
+    const saldoEl=document.getElementById('fd-saldo');
+    saldoEl.textContent=mFmt(saldo); saldoEl.style.color=saldo>=0?'var(--green)':'var(--red)';
+    document.getElementById('fd-vencer').textContent=mFmt(vencer7);
+
+    // Agrupar por dia
+    const dias={};
+    receberOk.forEach(r=>{ const d=r.data_pagamento||r.data_vencimento; if(!dias[d]) dias[d]={entradas:[],saidas:[]}; dias[d].entradas.push(r); });
+    pagarOk.forEach(p=>{ const d=p.data_pagamento||p.data_vencimento; if(!dias[d]) dias[d]={entradas:[],saidas:[]}; dias[d].saidas.push(p); });
+
+    const body=document.getElementById('fluxo-diario-body');
+    const sortedDias=Object.keys(dias).sort();
+    if(!sortedDias.length){ body.innerHTML='<div class="empty-state">Nenhum lançamento no período</div>'; return; }
+
+    body.innerHTML=sortedDias.map(d=>{
+      const dia=dias[d];
+      const totalEnt=dia.entradas.reduce((a,r)=>a+parseFloat(r.valor_final||r.valor_total||0),0);
+      const totalSai=dia.saidas.reduce((a,p)=>a+parseFloat(p.valor||0),0);
+      const saldoDia=totalEnt-totalSai;
+      return `<div style="border:1px solid var(--bdr);border-radius:10px;margin-bottom:12px;overflow:hidden">
+        <div style="background:var(--surface);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bdr)">
+          <strong style="color:var(--purple)">${fmtD(d)}</strong>
+          <span style="display:flex;gap:16px;font-size:13px">
+            <span style="color:var(--green)">+ ${mFmt(totalEnt)}</span>
+            <span style="color:var(--red)">- ${mFmt(totalSai)}</span>
+            <span style="font-weight:700;color:${saldoDia>=0?'var(--green)':'var(--red)'}">= ${mFmt(saldoDia)}</span>
+          </span>
+        </div>
+        <div style="padding:8px 16px">
+          ${dia.entradas.map(r=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;font-size:13px"><span>&#8657; ${r.descricao||'Recebimento'}</span><span style="color:var(--green)">${mFmt(r.valor_final||r.valor_total)}</span></div>`).join('')}
+          ${dia.saidas.map(p=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;font-size:13px"><span>&#8659; ${p.descricao||'Pagamento'}</span><span style="color:var(--red)">${mFmt(p.valor)}</span></div>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){console.error(e)}
+}
+
+// ══ FLUXO DE CAIXA MENSAL ════════════════════════════════════════
+function initFluxoMensal(){
+  const sel=document.getElementById('fluxo-ano');
+  if(sel.options.length) return;
+  const cur=new Date().getFullYear();
+  for(let y=cur-2;y<=cur+1;y++) sel.add(new Option(y,y,y===cur,y===cur));
+}
+
+async function loadFluxoMensal(){
+  const ano=document.getElementById('fluxo-ano').value||new Date().getFullYear();
+  const emp=APP.empresa, q=emp?`&cliente_bop_id=eq.${emp.id}`:'';
+  try{
+    const ini=`${ano}-01-01`, fim=`${ano}-12-31`;
+    const [rp,rr]=await Promise.all([
+      fetch(`${SB}/rest/v1/contas_pagar?select=valor,data_vencimento,data_pagamento,status&data_vencimento=gte.${ini}&data_vencimento=lte.${fim}${q}`,{headers:hdrs()}),
+      fetch(`${SB}/rest/v1/contas_receber?select=valor_total,valor_final,data_vencimento,data_pagamento,status&data_vencimento=gte.${ini}&data_vencimento=lte.${fim}${q}`,{headers:hdrs()})
+    ]);
+    const pagar=await rp.json(), receber=await rr.json();
+    const pagarOk=Array.isArray(pagar)?pagar:[], receberOk=Array.isArray(receber)?receber:[];
+    const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    let totalEnt=0,totalSai=0;
+    const rows=meses.map((m,mi)=>{
+      const mes=String(mi+1).padStart(2,'0');
+      const pMes=pagarOk.filter(p=>(p.data_vencimento||'').startsWith(`${ano}-${mes}`));
+      const rMes=receberOk.filter(r=>(r.data_vencimento||'').startsWith(`${ano}-${mes}`));
+      const recebido=rMes.filter(r=>r.status==='pago'||r.status==='recebido').reduce((a,r)=>a+parseFloat(r.valor_final||r.valor_total||0),0);
+      const pago=pMes.filter(p=>p.status==='pago').reduce((a,p)=>a+parseFloat(p.valor||0),0);
+      const pendRec=rMes.filter(r=>r.status==='pendente'||r.status==='em_aberto').reduce((a,r)=>a+parseFloat(r.valor_total||0),0);
+      const pendPag=pMes.filter(p=>p.status==='a_pagar').reduce((a,p)=>a+parseFloat(p.valor||0),0);
+      const saldoReal=recebido-pago;
+      const saldoProj=(recebido+pendRec)-(pago+pendPag);
+      totalEnt+=recebido; totalSai+=pago;
+      return `<tr>
+        <td><strong>${m}</strong></td>
+        <td style="color:var(--green)">${mFmt(recebido)}</td>
+        <td style="color:var(--red)">${mFmt(pago)}</td>
+        <td style="color:#888">${mFmt(pendRec)}</td>
+        <td style="color:#888">${mFmt(pendPag)}</td>
+        <td style="font-weight:600;color:${saldoReal>=0?'var(--green)':'var(--red)'}">${mFmt(saldoReal)}</td>
+        <td style="font-weight:600;color:${saldoProj>=0?'var(--purple)':'var(--red)'}">${mFmt(saldoProj)}</td>
+      </tr>`;
+    });
+    document.getElementById('tb-fluxo-mensal').innerHTML=rows.join('');
+    document.getElementById('fm-entradas').textContent=mFmt(totalEnt);
+    document.getElementById('fm-saidas').textContent=mFmt(totalSai);
+    const res=totalEnt-totalSai;
+    const resEl=document.getElementById('fm-resultado');
+    resEl.textContent=mFmt(res); resEl.style.color=res>=0?'var(--green)':'var(--red)';
+  }catch(e){console.error(e)}
+}
+
+// ══ EXTRATO DE MOVIMENTAÇÕES ═════════════════════════════════════
+function initExtrato(){
+  const ini=document.getElementById('ext-ini'), fim=document.getElementById('ext-fim');
+  if(!ini.value){ ini.value=firstDayMonth(); fim.value=lastDayMonth(); }
+}
+
+async function loadExtrato(){
+  const ini=document.getElementById('ext-ini').value, fim=document.getElementById('ext-fim').value, tipo=document.getElementById('ext-tipo').value;
+  if(!ini||!fim) return;
+  const emp=APP.empresa, q=emp?`&cliente_bop_id=eq.${emp.id}`:'';
+  try{
+    const movimentos=[];
+    if(!tipo||tipo==='receber'){
+      const r=await fetch(`${SB}/rest/v1/contas_receber?select=descricao,valor_final,valor_total,data_pagamento,data_vencimento,status&data_vencimento=gte.${ini}&data_vencimento=lte.${fim}${q}`,{headers:hdrs()});
+      const d=await r.json();
+      (Array.isArray(d)?d:[]).forEach(x=>movimentos.push({data:x.data_pagamento||x.data_vencimento,desc:x.descricao||'Recebimento',tipo:'receber',status:x.status,valor:parseFloat(x.valor_final||x.valor_total||0)}));
+    }
+    if(!tipo||tipo==='pagar'){
+      const r=await fetch(`${SB}/rest/v1/contas_pagar?select=descricao,valor,data_pagamento,data_vencimento,status&data_vencimento=gte.${ini}&data_vencimento=lte.${fim}${q}`,{headers:hdrs()});
+      const d=await r.json();
+      (Array.isArray(d)?d:[]).forEach(x=>movimentos.push({data:x.data_pagamento||x.data_vencimento,desc:x.descricao||'Pagamento',tipo:'pagar',status:x.status,valor:parseFloat(x.valor||0)}));
+    }
+    movimentos.sort((a,b)=>a.data>b.data?1:-1);
+    const totalRec=movimentos.filter(m=>m.tipo==='receber'&&(m.status==='pago'||m.status==='recebido')).reduce((a,m)=>a+m.valor,0);
+    const totalPag=movimentos.filter(m=>m.tipo==='pagar'&&m.status==='pago').reduce((a,m)=>a+m.valor,0);
+    document.getElementById('ext-receitas').textContent=mFmt(totalRec);
+    document.getElementById('ext-despesas').textContent=mFmt(totalPag);
+    const s=totalRec-totalPag; const sEl=document.getElementById('ext-saldo');
+    sEl.textContent=mFmt(s); sEl.style.color=s>=0?'var(--green)':'var(--red)';
+    document.getElementById('ext-count').textContent=movimentos.length;
+    const statusLabel={pago:'Pago',recebido:'Recebido',a_pagar:'A Pagar',pendente:'Pendente',vencido:'Vencido',em_aberto:'Em Aberto'};
+    const statusColor={pago:'var(--green)',recebido:'var(--green)',a_pagar:'var(--amber)',pendente:'var(--amber)',vencido:'var(--red)',em_aberto:'var(--amber)'};
+    document.getElementById('tb-extrato').innerHTML=movimentos.length
+      ? movimentos.map(m=>`<tr>
+          <td>${fmtD(m.data)}</td>
+          <td>${m.desc}</td>
+          <td><span class="badge" style="background:${m.tipo==='receber'?'#dcfce7':'#fee2e2'};color:${m.tipo==='receber'?'var(--green)':'var(--red)'}">${m.tipo==='receber'?'Entrada':'Saída'}</span></td>
+          <td><span class="badge" style="background:#f3f4f6;color:${statusColor[m.status]||'#666'}">${statusLabel[m.status]||m.status}</span></td>
+          <td style="text-align:right;font-weight:600;color:${m.tipo==='receber'?'var(--green)':'var(--red)'}">${m.tipo==='receber'?'+':'-'} ${mFmt(m.valor)}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="5" class="empty-state">Nenhum lançamento no período</td></tr>';
+  }catch(e){console.error(e)}
+}
+
+// ══ DRE ══════════════════════════════════════════════════════════
+function initDRE(){
+  const mes=document.getElementById('dre-mes'), ano=document.getElementById('dre-ano');
+  if(!mes.options.length){
+    const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const cur=new Date();
+    meses.forEach((m,i)=>mes.add(new Option(m,String(i+1).padStart(2,'0'),i===cur.getMonth(),i===cur.getMonth())));
+    const cy=cur.getFullYear(); for(let y=cy-2;y<=cy+1;y++) ano.add(new Option(y,y,y===cy,y===cy));
+  }
+}
+
+async function loadDRE(){
+  const mes=document.getElementById('dre-mes').value, ano=document.getElementById('dre-ano').value;
+  if(!mes||!ano) return;
+  const ini=`${ano}-${mes}-01`;
+  const lastDay=new Date(parseInt(ano),parseInt(mes),0).getDate();
+  const fim=`${ano}-${mes}-${lastDay}`;
+  const emp=APP.empresa, q=emp?`&cliente_bop_id=eq.${emp.id}`:'';
+  try{
+    const [rp,rr]=await Promise.all([
+      fetch(`${SB}/rest/v1/contas_pagar?select=valor,status,categoria_id&data_vencimento=gte.${ini}&data_vencimento=lte.${fim}${q}`,{headers:hdrs()}),
+      fetch(`${SB}/rest/v1/contas_receber?select=valor_total,valor_final,status&data_vencimento=gte.${ini}&data_vencimento=lte.${fim}${q}`,{headers:hdrs()})
+    ]);
+    const pagar=await rp.json(), receber=await rr.json();
+    const pagarOk=Array.isArray(pagar)?pagar:[], receberOk=Array.isArray(receber)?receber:[];
+    const recBruto=receberOk.reduce((a,r)=>a+parseFloat(r.valor_total||0),0);
+    const recLiq=receberOk.filter(r=>r.status==='pago'||r.status==='recebido').reduce((a,r)=>a+parseFloat(r.valor_final||r.valor_total||0),0);
+    const despTotal=pagarOk.reduce((a,p)=>a+parseFloat(p.valor||0),0);
+    const despPago=pagarOk.filter(p=>p.status==='pago').reduce((a,p)=>a+parseFloat(p.valor||0),0);
+    const lucro=recLiq-despPago;
+    const margem=recLiq>0?(lucro/recLiq*100).toFixed(1):0;
+    const row=(label,val,bold,color)=>`<div style="display:flex;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--bdr)${bold?';background:var(--surface)':''}">`+
+      `<span style="${bold?'font-weight:700':''}">${label}</span>`+
+      `<span style="font-weight:${bold?700:500};color:${color||'inherit'}">${mFmt(val)}</span></div>`;
+    document.getElementById('dre-body').innerHTML=`
+      <div style="border:1px solid var(--bdr);border-radius:12px;overflow:hidden;font-size:14px">
+        <div style="padding:12px 16px;background:var(--purple);color:#fff;font-weight:700">DRE — ${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][parseInt(mes)-1]}/${ano}</div>
+        ${row('(+) Receita Bruta Prevista',recBruto,false,'var(--green)')}
+        ${row('(+) Receita Efetivamente Recebida',recLiq,true,'var(--green)')}
+        ${row('(-) Despesas Totais Previstas',despTotal,false,'var(--red)')}
+        ${row('(-) Despesas Pagas',despPago,true,'var(--red)')}
+        <div style="display:flex;justify-content:space-between;padding:14px 16px;background:${lucro>=0?'#dcfce7':'#fee2e2'}">
+          <span style="font-weight:700;font-size:15px">Resultado do Período</span>
+          <span style="font-weight:700;font-size:15px;color:${lucro>=0?'var(--green)':'var(--red)'}">${mFmt(lucro)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 16px;background:var(--surface)">
+          <span>Margem Líquida</span>
+          <span style="font-weight:600;color:${lucro>=0?'var(--green)':'var(--red)'}">${margem}%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 16px">
+          <span>Receitas a Receber (pendentes)</span>
+          <span style="color:#888">${mFmt(recBruto-recLiq)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 16px">
+          <span>Despesas a Pagar (pendentes)</span>
+          <span style="color:#888">${mFmt(despTotal-despPago)}</span>
+        </div>
+      </div>`;
+  }catch(e){console.error(e)}
+}
+
+// ══ CONCILIAÇÃO BANCÁRIA ══════════════════════════════════════════
+function initConciliacao(){ /* pronto para uso */ }
+
+function importarExtratoBancario(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const content=e.target.result;
+    let transacoes=[];
+    if(file.name.toLowerCase().endsWith('.ofx')||file.name.toLowerCase().endsWith('.txt')){
+      transacoes=parseOFX(content);
+    } else {
+      transacoes=parseCSVExtrato(content);
+    }
+    document.getElementById('conc-upload-area').style.display='none';
+    document.getElementById('conc-resultados').classList.remove('hidden');
+    await conciliarTransacoes(transacoes);
+  };
+  reader.readAsText(file,'latin1');
+}
+
+function parseOFX(text){
+  const transacoes=[];
+  const dtposted=text.matchAll(/<DTPOSTED>(d{8})/g);
+  const trnamt=text.matchAll(/<TRNAMT>([-d.]+)/g);
+  const memo=text.matchAll(/<MEMO>([^
+<]+)/g);
+  const fitid=text.matchAll(/<FITID>([^
+<]+)/g);
+  const amts=[...trnamt], mems=[...memo], dates=[...dtposted], ids=[...fitid];
+  for(let i=0;i<amts.length;i++){
+    const d=dates[i]?.[1]||'';
+    const data=d?`${d.substring(0,4)}-${d.substring(4,6)}-${d.substring(6,8)}`:'';
+    transacoes.push({
+      data, valor:parseFloat(amts[i][1]), descricao:(mems[i]?.[1]||'').trim(), fitid:ids[i]?.[1]||i
+    });
+  }
+  return transacoes;
+}
+
+function parseCSVExtrato(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  const sep=lines[0].includes(';')?';':',';
+  const header=lines[0].split(sep).map(h=>h.toLowerCase().replace(/['"]/g,'').trim());
+  const iData=header.findIndex(h=>h.includes('data')||h.includes('date'));
+  const iDesc=header.findIndex(h=>h.includes('desc')||h.includes('hist')||h.includes('memo'));
+  const iVal=header.findIndex(h=>h.includes('valor')||h.includes('value')||h.includes('amount'));
+  return lines.slice(1).map((l,i)=>{
+    const cols=l.split(sep).map(c=>c.replace(/['"]/g,'').trim());
+    const rawVal=(cols[iVal]||'0').replace(/\./g,'').replace(',','.');
+    return { data:cols[iData]||'', descricao:cols[iDesc]||'', valor:parseFloat(rawVal)||0, fitid:i };
+  }).filter(t=>t.valor!==0);
+}
+
+async function conciliarTransacoes(transacoes){
+  document.getElementById('conc-total').textContent=transacoes.length;
+  const emp=APP.empresa, q=emp?`&cliente_bop_id=eq.${emp.id}`:'';
+  // Carregar lançamentos abertos para match
+  const [rp,rr]=await Promise.all([
+    fetch(`${SB}/rest/v1/contas_pagar?select=id,descricao,valor,data_vencimento,status&status=eq.a_pagar${q}`,{headers:hdrs()}),
+    fetch(`${SB}/rest/v1/contas_receber?select=id,descricao,valor_total,data_vencimento,status&status=neq.recebido&status=neq.pago${q}`,{headers:hdrs()})
+  ]);
+  const pagar=await rp.json()||[], receber=await rr.json()||[];
+  const lancamentos=[
+    ...(Array.isArray(pagar)?pagar:[]).map(p=>({...p,tipo:'pagar',valorNum:parseFloat(p.valor||0)})),
+    ...(Array.isArray(receber)?receber:[]).map(r=>({...r,tipo:'receber',valorNum:parseFloat(r.valor_total||0)}))
+  ];
+  window._concTransacoes=transacoes;
+  window._concLancamentos=lancamentos;
+  const matches=[]; let matched=0, unmatched=0;
+  transacoes.forEach((t,idx)=>{
+    const absVal=Math.abs(t.valor);
+    const tipo=t.valor<0?'pagar':'receber';
+    // Procurar match por valor próximo (±1%) e data próxima (±5 dias)
+    let best=null, bestScore=0;
+    lancamentos.forEach(l=>{
+      if(l.tipo!==tipo) return;
+      const diffVal=Math.abs(l.valorNum-absVal)/Math.max(absVal,1);
+      const diffDias=l.data_vencimento?Math.abs(new Date(t.data)-new Date(l.data_vencimento))/(86400000):99;
+      if(diffVal<0.02&&diffDias<=10){
+        const score=100-diffVal*50-diffDias*2;
+        if(score>bestScore){ bestScore=score; best=l; }
+      }
+    });
+    matches.push({...t,idx,match:best,score:Math.round(bestScore),tipo});
+    if(best) matched++; else unmatched++;
+  });
+  window._concMatches=matches;
+  document.getElementById('conc-match').textContent=matched;
+  document.getElementById('conc-nomatch').textContent=unmatched;
+  document.getElementById('conc-done').textContent=0;
+  const statusLabel={pago:'Pago',recebido:'Recebido',a_pagar:'A Pagar',pendente:'Pendente'};
+  document.getElementById('tb-conciliacao').innerHTML=matches.map((m,i)=>`<tr id="conc-row-${i}">
+    <td>${fmtD(m.data)}</td>
+    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${m.descricao}</td>
+    <td style="font-weight:600;color:${m.tipo==='receber'?'var(--green)':'var(--red)'}">${m.tipo==='receber'?'+':'-'} ${mFmt(Math.abs(m.valor))}</td>
+    <td>${m.match?`<span style="font-size:12px"><strong>${m.match.descricao}</strong><br>${fmtD(m.match.data_vencimento)} · ${mFmt(m.match.valorNum)}</span>`:'<span style="color:#aaa;font-size:12px">Não identificado</span>'}</td>
+    <td>${m.match?`<span style="background:${m.score>=80?'#dcfce7':m.score>=60?'#fef9c3':'#fee2e2'};color:${m.score>=80?'var(--green)':m.score>=60?'#92400e':'var(--red)'};padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600">${m.score}%</span>`:'—'}</td>
+    <td>${m.match
+      ?`<button class="btn-s" onclick="confirmarConciliacao(${i})" id="btn-conc-${i}">Confirmar</button>`
+      :`<button class="btn-s" onclick="ignorarConciliacao(${i})">Ignorar</button>`
+    }</td>
+  </tr>`).join('');
+}
+
+async function confirmarConciliacao(idx){
+  const m=window._concMatches[idx];
+  if(!m||!m.match) return;
+  const btn=document.getElementById('btn-conc-'+idx);
+  if(btn){btn.disabled=true;btn.textContent='...';}
+  const campo=m.tipo==='pagar'?'contas_pagar':'contas_receber';
+  const statusNovo=m.tipo==='pagar'?'pago':'recebido';
+  const r=await fetch(`${SB}/rest/v1/${campo}?id=eq.${m.match.id}`,{
+    method:'PATCH',headers:hdrsJson(),body:JSON.stringify({status:statusNovo,data_pagamento:m.data})
+  });
+  if(r.ok){
+    document.getElementById('conc-row-'+idx).style.opacity='0.4';
+    if(btn){btn.textContent='✓ Confirmado';btn.style.color='var(--green)';}
+    const done=parseInt(document.getElementById('conc-done').textContent||0)+1;
+    document.getElementById('conc-done').textContent=done;
+  } else {
+    if(btn){btn.disabled=false;btn.textContent='Confirmar';}
+    alert('Erro ao confirmar');
+  }
+}
+
+function ignorarConciliacao(idx){
+  document.getElementById('conc-row-'+idx).style.opacity='0.4';
+}
+
+async function confirmarTodasConciliacoes(){
+  const matches=window._concMatches||[];
+  for(let i=0;i<matches.length;i++){
+    if(matches[i].match && document.getElementById('btn-conc-'+i)?.disabled===false){
+      await confirmarConciliacao(i);
+    }
+  }
+}
+
+function resetarConciliacao(){
+  document.getElementById('conc-upload-area').style.display='';
+  document.getElementById('conc-resultados').classList.add('hidden');
+  document.getElementById('conc-file').value='';
+}
+
+// ── Exportar helpers (simples CSV) ─────────────────────────────
+function exportarFluxo(){ alert('Em breve: exportar PDF/Excel do Fluxo Diário'); }
+function exportarFluxoMensal(){ alert('Em breve: exportar PDF/Excel do Fluxo Mensal'); }
+function exportarExtrato(){
+  const rows=document.querySelectorAll('#tb-extrato tr');
+  let csv='Data;Descrição;Tipo;Situação;Valor\n';
+  rows.forEach(r=>{ const cols=[...r.querySelectorAll('td')].map(td=>td.innerText.trim()); if(cols.length) csv+=cols.join(';')+'\n'; });
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='extrato.csv'; a.click();
+}
+function exportarDRE(){ alert('Em breve: exportar PDF do DRE'); }
+
 </script>
 
 <!-- ═══ MODAL LANÇAMENTO FINANCEIRO ═══ -->
@@ -2156,5 +2587,137 @@ window.loadReceber = async function(){
 </div>
 
 
+
+
+<!-- ═══ FLUXO DE CAIXA DIÁRIO ═══════════════════════════════════════════ -->
+<div id="v-fluxo-diario" class="hidden">
+  <div class="mod-h">
+    <div><div class="mod-t">Fluxo de Caixa <span>Diário</span></div>
+    <p class="mod-sub">Entradas e saídas por dia</p></div>
+    <div class="mod-acts">
+      <input type="date" id="fluxo-data-ini" class="inp-s" onchange="loadFluxoDiario()">
+      <input type="date" id="fluxo-data-fim" class="inp-s" onchange="loadFluxoDiario()">
+      <button class="btn-s" onclick="exportarFluxo()">&#8659; Exportar</button>
+    </div>
+  </div>
+  <!-- KPIs -->
+  <div class="kv-row" style="margin-bottom:16px">
+    <div class="kv-card"><div class="kv-lbl">Entradas do Período</div><div class="kv-val green" id="fd-entradas">R$ 0,00</div></div>
+    <div class="kv-card"><div class="kv-lbl">Saídas do Período</div><div class="kv-val red" id="fd-saidas">R$ 0,00</div></div>
+    <div class="kv-card"><div class="kv-lbl">Saldo Líquido</div><div class="kv-val" id="fd-saldo">R$ 0,00</div></div>
+    <div class="kv-card"><div class="kv-lbl">A Vencer (próx. 7d)</div><div class="kv-val amber" id="fd-vencer">R$ 0,00</div></div>
+  </div>
+  <div id="fluxo-diario-body"></div>
+</div>
+
+<!-- ═══ FLUXO DE CAIXA MENSAL ════════════════════════════════════════════ -->
+<div id="v-fluxo-mensal" class="hidden">
+  <div class="mod-h">
+    <div><div class="mod-t">Fluxo de Caixa <span>Mensal</span></div>
+    <p class="mod-sub">Visão consolidada por mês</p></div>
+    <div class="mod-acts">
+      <select id="fluxo-ano" class="sel-s" onchange="loadFluxoMensal()"></select>
+      <button class="btn-s" onclick="exportarFluxoMensal()">&#8659; Exportar</button>
+    </div>
+  </div>
+  <div class="kv-row" style="margin-bottom:16px">
+    <div class="kv-card"><div class="kv-lbl">Total Entradas (ano)</div><div class="kv-val green" id="fm-entradas">R$ 0,00</div></div>
+    <div class="kv-card"><div class="kv-lbl">Total Saídas (ano)</div><div class="kv-val red" id="fm-saidas">R$ 0,00</div></div>
+    <div class="kv-card"><div class="kv-lbl">Resultado Anual</div><div class="kv-val" id="fm-resultado">R$ 0,00</div></div>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <thead><tr>
+      <th>Mês</th><th>Recebido</th><th>Pago</th><th>Pendente Receber</th><th>Pendente Pagar</th><th>Saldo Realizado</th><th>Saldo Projetado</th>
+    </tr></thead>
+    <tbody id="tb-fluxo-mensal"><tr><td colspan="7" class="empty-state">Selecione o ano acima</td></tr></tbody>
+  </table></div>
+</div>
+
+<!-- ═══ EXTRATO DE MOVIMENTAÇÕES ════════════════════════════════════════ -->
+<div id="v-extrato" class="hidden">
+  <div class="mod-h">
+    <div><div class="mod-t">Extrato de <span>Movimentações</span></div>
+    <p class="mod-sub">Todas as entradas e saídas realizadas</p></div>
+    <div class="mod-acts">
+      <input type="date" id="ext-ini" class="inp-s" onchange="loadExtrato()">
+      <input type="date" id="ext-fim" class="inp-s" onchange="loadExtrato()">
+      <select id="ext-tipo" class="sel-s" onchange="loadExtrato()">
+        <option value="">Todos</option>
+        <option value="receber">Recebimentos</option>
+        <option value="pagar">Pagamentos</option>
+      </select>
+      <button class="btn-s" onclick="exportarExtrato()">&#8659; Exportar</button>
+    </div>
+  </div>
+  <div class="kv-row" style="margin-bottom:16px">
+    <div class="kv-card"><div class="kv-lbl">Receitas Realizadas</div><div class="kv-val green" id="ext-receitas">R$ 0,00</div></div>
+    <div class="kv-card"><div class="kv-lbl">Despesas Realizadas</div><div class="kv-val red" id="ext-despesas">R$ 0,00</div></div>
+    <div class="kv-card"><div class="kv-lbl">Saldo do Período</div><div class="kv-val" id="ext-saldo">R$ 0,00</div></div>
+    <div class="kv-card"><div class="kv-lbl">Total de Lançamentos</div><div class="kv-val" id="ext-count">0</div></div>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <thead><tr>
+      <th>Data</th><th>Descrição</th><th>Tipo</th><th>Situação</th><th>Valor</th>
+    </tr></thead>
+    <tbody id="tb-extrato"><tr><td colspan="5" class="empty-state">Defina o período acima</td></tr></tbody>
+  </table></div>
+</div>
+
+<!-- ═══ DRE ═════════════════════════════════════════════════════════════ -->
+<div id="v-dre" class="hidden">
+  <div class="mod-h">
+    <div><div class="mod-t">DRE — <span>Demonstrativo de Resultado</span></div>
+    <p class="mod-sub">Resultado do exercício por período</p></div>
+    <div class="mod-acts">
+      <select id="dre-mes" class="sel-s" onchange="loadDRE()"></select>
+      <select id="dre-ano" class="sel-s" onchange="loadDRE()"></select>
+      <button class="btn-s" onclick="exportarDRE()">&#8659; Exportar</button>
+    </div>
+  </div>
+  <div id="dre-body" style="max-width:700px">
+    <div class="empty-state">Selecione o período acima para gerar o DRE.</div>
+  </div>
+</div>
+
+<!-- ═══ CONCILIAÇÃO BANCÁRIA ════════════════════════════════════════════ -->
+<div id="v-conciliacao" class="hidden">
+  <div class="mod-h">
+    <div><div class="mod-t">Conciliação <span>Bancária</span></div>
+    <p class="mod-sub">Importe o extrato do banco e concilie automaticamente</p></div>
+    <div class="mod-acts">
+      <label class="btn-p" style="cursor:pointer">
+        &#8679; Importar Extrato (OFX/CSV)
+        <input type="file" id="conc-file" accept=".ofx,.csv,.txt" style="display:none" onchange="importarExtratoBancario(this)">
+      </label>
+    </div>
+  </div>
+
+  <!-- Upload area -->
+  <div id="conc-upload-area" style="border:2px dashed var(--purple);border-radius:12px;padding:48px;text-align:center;margin-bottom:24px;cursor:pointer" onclick="document.getElementById('conc-file').click()">
+    <div style="font-size:40px;margin-bottom:12px">&#128196;</div>
+    <div style="font-weight:600;color:var(--purple);margin-bottom:6px">Arraste o extrato aqui ou clique para selecionar</div>
+    <div style="font-size:13px;color:#888">Formatos aceitos: OFX (recomendado), CSV · O sistema identificará os lançamentos automaticamente</div>
+  </div>
+
+  <!-- Resultados da conciliação -->
+  <div id="conc-resultados" class="hidden">
+    <div class="kv-row" style="margin-bottom:16px">
+      <div class="kv-card"><div class="kv-lbl">Transações no extrato</div><div class="kv-val" id="conc-total">0</div></div>
+      <div class="kv-card"><div class="kv-lbl">Identificadas</div><div class="kv-val green" id="conc-match">0</div></div>
+      <div class="kv-card"><div class="kv-lbl">Não identificadas</div><div class="kv-val amber" id="conc-nomatch">0</div></div>
+      <div class="kv-card"><div class="kv-lbl">Já baixadas</div><div class="kv-val" id="conc-done">0</div></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn-p" onclick="confirmarTodasConciliacoes()">&#10003; Confirmar Todas Identificadas</button>
+      <button class="btn-s" onclick="resetarConciliacao()">Limpar</button>
+    </div>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr>
+        <th>Data</th><th>Descrição Banco</th><th>Valor</th><th>Match no Sistema</th><th>Confiança</th><th>Ação</th>
+      </tr></thead>
+      <tbody id="tb-conciliacao"></tbody>
+    </table></div>
+  </div>
+</div>
 </body>
 </html>
