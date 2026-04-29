@@ -1391,7 +1391,7 @@ let allUsuarios = []
 async function loadUsuarios(){
   const tb = document.getElementById('tb-usuarios')
   try{
-    const r = await fetch(SB+'/rest/v1/usuarios_sistema?select=id,nome,email,perfil,ativo,criado_em,cliente_bop_id,clientes_bop(nome_empresa)&order=criado_em.desc', { headers: hdrs() })
+    const r = await fetch(SB+'/rest/v1/usuarios_sistema?select=id,nome,email,perfil_acesso,ativo,criado_em,cliente_bop_id,clientes_bop(nome_empresa)&order=criado_em.desc', { headers: hdrs() })
     if(!r.ok){ tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-t">Erro ao carregar usuários</div></div></td></tr>'; return }
     allUsuarios = await r.json()
     renderUsuarios(allUsuarios)
@@ -1412,7 +1412,7 @@ function renderUsuarios(list){
         <span style="font-weight:600">${u.nome||'—'}</span>
       </div></td>
       <td style="font-size:12px">${u.email}</td>
-      <td><span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;${perfilColor[u.perfil]||''}">${perfilLabel[u.perfil]||u.perfil}</span></td>
+      <td><span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;${perfilColor[u.perfil_acesso]||''}">${perfilLabel[u.perfil_acesso]||u.perfil_acesso}</span></td>
       <td style="font-size:12px">${empresa}</td>
       <td style="font-size:12px">${u.criado_em?new Date(u.criado_em).toLocaleDateString('pt-BR'):'—'}</td>
       <td><span class="pill ${u.ativo?'pa':'at'}">${u.ativo?'Ativo':'Inativo'}</span></td>
@@ -1424,7 +1424,7 @@ function renderUsuarios(list){
   }).join('')
 }
 
-function filtrarUsuariosPerfil(v){ renderUsuarios(v?allUsuarios.filter(u=>u.perfil===v):allUsuarios) }
+function filtrarUsuariosPerfil(v){ renderUsuarios(v?allUsuarios.filter(u=>u.perfil_acesso===v):allUsuarios) }
 function filtrarUsuariosNome(q){ renderUsuarios(allUsuarios.filter(u=>(u.nome||'').toLowerCase().includes(q.toLowerCase())||(u.email||'').toLowerCase().includes(q.toLowerCase()))) }
 
 async function toggleUsuarioAtivo(id, atual){
@@ -1728,7 +1728,7 @@ async function usrSalvar(){
   try{
     // 1. Criar/atualizar no auth do Supabase via Admin (service role necessário — faz via tabela de convites)
     // 2. Criar/atualizar na tabela usuarios_sistema
-    const payload = { nome, email, perfil, cliente_bop_id: empresa_id, ativo: true }
+    const payload = { nome, email, perfil_acesso: perfil, cliente_bop_id: empresa_id, ativo: true }
     let res
     if(USR_EDIT_ID){
       res = await fetch(SB+'/rest/v1/usuarios_sistema?id=eq.'+USR_EDIT_ID, { method:'PATCH', headers:hdrsJson(), body:JSON.stringify(payload) })
