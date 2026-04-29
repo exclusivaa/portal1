@@ -1200,9 +1200,9 @@ function showEmpAlert(msg,t="error"){
 // ── PESSOAS ───────────────────────────────────────────
 let allPessoas=[], pessoaFiltroTipo=""
 async function loadPessoas(){
-  if(!APP.empresa) return
   try{
-    const r=await fetch(`${SB}/rest/v1/pessoas?cliente_bop_id=eq.${APP.empresa.id}&subtipo=in.(cliente,fornecedor,geral)&select=id,nome,razao_social,tipo,subtipo,documento,tipo_documento,email,cidade,uf,ativo&order=nome`, { headers:hdrs() })
+    const _qEmp=APP.empresa?`cliente_bop_id=eq.${APP.empresa.id}&`:``
+    const r=await fetch(`${SB}/rest/v1/pessoas?${_qEmp}subtipo=in.(cliente,fornecedor,geral)&select=id,nome,razao_social,tipo,subtipo,documento,tipo_documento,email,cidade,uf,ativo&order=nome`, { headers:hdrs() })
     if(!r.ok){ renderPessoas([]); return }
     allPessoas=await r.json()
     renderPessoas(allPessoas)
@@ -1235,9 +1235,9 @@ function filtrarTipoPessoa(btn,tipo){
 // ── COLABORADORES ─────────────────────────────────────
 let allColab=[], colabFiltroTipo=""
 async function loadColab(){
-  if(!APP.empresa) return
   try{
-    const r=await fetch(`${SB}/rest/v1/pessoas?cliente_bop_id=eq.${APP.empresa.id}&subtipo=in.(clt,pj,estagiario,autonomo)&select=id,nome,tipo,subtipo,documento,cargo,data_admissao,salario,ativo&order=nome`, { headers:hdrs() })
+    const _qEmpC=APP.empresa?`cliente_bop_id=eq.${APP.empresa.id}&`:``
+    const r=await fetch(`${SB}/rest/v1/pessoas?${_qEmpC}cliente_bop_id=eq.${APP.empresa.id}&subtipo=in.(clt,pj,estagiario,autonomo)&select=id,nome,tipo,subtipo,documento,cargo,data_admissao,salario,ativo&order=nome`, { headers:hdrs() })
     if(!r.ok){ renderColab([]); return }
     allColab=await r.json(); renderColab(allColab)
   } catch(e){ renderColab([]) }
@@ -1756,7 +1756,9 @@ async function usrSalvar(){
     const payload = { nome, email, perfil, cliente_bop_id: empresa_id, ativo: true }
     let res
     if(USR_EDIT_ID){
-      res = await fetch(SB+'/rest/v1/usuarios_sistema?id=eq.'+USR_EDIT_ID, { method:'PATCH', headers:hdrsJson(), body:JSON.stringify(payload) })
+      res = await   // Garantir token válido antes de salvar
+  if(!APP.session?.access_token){ alert('Sessão expirada. Faça login novamente.'); window.location.href='/index.html'; return }
+  fetch(SB+'/rest/v1/usuarios_sistema?id=eq.'+USR_EDIT_ID, { method:'PATCH', headers:hdrsJson(), body:JSON.stringify(payload) })
     } else {
       // Verifica se email já existe
       const check = await fetch(SB+'/rest/v1/usuarios_sistema?email=eq.'+encodeURIComponent(email), { headers:hdrs() })
