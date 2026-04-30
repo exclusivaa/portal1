@@ -260,6 +260,31 @@ textarea.mp-i{min-height:68px;resize:vertical}
       <div class="si" id="si-receber" onclick="go('receber')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
         Contas a Receber
+      </div>
+      <div class="si" id="si-fluxo-diario" onclick="go('fluxo-diario')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Fluxo de Caixa Diário
+      </div>
+      <div class="si" id="si-fluxo-mensal" onclick="go('fluxo-mensal')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/></svg>
+        Fluxo de Caixa Mensal
+      </div>
+      <div class="si" id="si-dre" onclick="go('dre')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        DRE
+      </div>
+      <div class="si" id="si-extrato" onclick="go('extrato')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Extrato de Movimentações
+      </div>
+      <div class="si" id="si-conciliacao" onclick="go('conciliacao')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Conciliação Bancária
+      </div>
+    </div>
+      <div class="si" id="si-receber" onclick="go('receber')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        Contas a Receber
       
       <div class="si" id="si-fluxo-diario" onclick="go('fluxo-diario')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -873,6 +898,11 @@ function go(v){
   if(v==="pessoas"){ document.getElementById("pessoasEmpresaNome").textContent=APP.empresa?.nome_empresa||"—"; loadPessoas() }
   if(v==="colab"){ document.getElementById("colabEmpresaNome").textContent=APP.empresa?.nome_empresa||"—"; loadColab() }
   if(v==="usuarios") loadUsuarios()
+  if(v==="extrato") loadExtrato()
+  if(v==="dre") loadDRE()
+  if(v==="conciliacao") loadConciliacao()
+  if(v==="fluxo-diario") loadFluxoDiario()
+  if(v==="fluxo-mensal") loadFluxoMensal()
 }
 
 function showNoClient(){
@@ -941,6 +971,94 @@ async function loadReceber(){
     APP.receberList = Array.isArray(d) ? d : []
     renderReceber(APP.receberList)
   } catch(e){ console.error('loadReceber',e) }
+}
+
+async function loadFluxoDiario(){
+  if(!APP.empresa) return
+  const data = document.getElementById('fluxo-diario-data').value || new Date().toISOString().split('T')[0]
+  document.getElementById('fluxo-diario-data').value = data
+  try {
+    const [rP, rR] = await Promise.all([
+      fetch(SB+`/rest/v1/contas_pagar?cliente_bop_id=eq.${APP.empresa.id}&data_vencimento=eq.${data}&select=descricao,valor,status,categoria,forma_pagamento&order=created_at`, {headers:hdrs()}),
+      fetch(SB+`/rest/v1/contas_receber?cliente_bop_id=eq.${APP.empresa.id}&data_vencimento=eq.${data}&select=descricao,valor,status,categoria,forma_pagamento&order=created_at`, {headers:hdrs()})
+    ])
+    const pagar = await rP.json()
+    const receber = await rR.json()
+    const pagas = Array.isArray(pagar) ? pagar : []
+    const recebidas = Array.isArray(receber) ? receber : []
+    const totalEnt = recebidas.reduce((s,r)=>s+(parseFloat(r.valor)||0),0)
+    const totalSai = pagas.reduce((s,p)=>s+(parseFloat(p.valor)||0),0)
+    const saldo = totalEnt - totalSai
+    document.getElementById('fd-entradas').textContent = 'R$ '+fmt(totalEnt)
+    document.getElementById('fd-saidas').textContent = 'R$ '+fmt(totalSai)
+    document.getElementById('fd-saldo').textContent = 'R$ '+fmt(saldo)
+    document.getElementById('fd-saldo').style.color = saldo >= 0 ? '#16a34a' : '#dc2626'
+    document.getElementById('fd-acumulado').textContent = 'R$ '+fmt(saldo)
+    const tbody = document.getElementById('tbody-fluxo-diario')
+    const rows = [
+      ...recebidas.map(r=>({...r, tipo:'Entrada', valor: parseFloat(r.valor)||0})),
+      ...pagas.map(p=>({...p, tipo:'Saída', valor: parseFloat(p.valor)||0}))
+    ]
+    if(!rows.length){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#888;padding:30px">Nenhum lançamento nesta data</td></tr>'; return }
+    let acum = 0
+    tbody.innerHTML = rows.map(r => {
+      acum += r.tipo==='Entrada' ? r.valor : -r.valor
+      return `<tr>
+        <td>—</td>
+        <td>${r.descricao||'—'}</td>
+        <td><span style="color:${r.tipo==='Entrada'?'#16a34a':'#dc2626'};font-weight:600">${r.tipo}</span></td>
+        <td>${r.categoria||'—'}</td>
+        <td>${r.forma_pagamento||'—'}</td>
+        <td style="color:${r.tipo==='Entrada'?'#16a34a':'#dc2626'};font-weight:600">${r.tipo==='Entrada'?'+':'-'} R$ ${fmt(r.valor)}</td>
+        <td style="font-weight:600">R$ ${fmt(acum)}</td>
+      </tr>`
+    }).join('')
+  } catch(e){ console.error('loadFluxoDiario',e) }
+}
+
+async function loadFluxoMensal(){
+  if(!APP.empresa) return
+  const mes = document.getElementById('fluxo-mensal-mes').value
+  const ano = document.getElementById('fluxo-mensal-ano').value
+  const ini = `${ano}-${String(mes).padStart(2,'0')}-01`
+  const fim = new Date(ano, mes, 0).toISOString().split('T')[0]
+  try {
+    const [rP, rR] = await Promise.all([
+      fetch(SB+`/rest/v1/contas_pagar?cliente_bop_id=eq.${APP.empresa.id}&data_vencimento=gte.${ini}&data_vencimento=lte.${fim}&select=data_vencimento,valor&order=data_vencimento`, {headers:hdrs()}),
+      fetch(SB+`/rest/v1/contas_receber?cliente_bop_id=eq.${APP.empresa.id}&data_vencimento=gte.${ini}&data_vencimento=lte.${fim}&select=data_vencimento,valor&order=data_vencimento`, {headers:hdrs()})
+    ])
+    const pagar = await rP.json()
+    const receber = await rR.json()
+    const pagas = Array.isArray(pagar) ? pagar : []
+    const recebidas = Array.isArray(receber) ? receber : []
+    const totalEnt = recebidas.reduce((s,r)=>s+(parseFloat(r.valor)||0),0)
+    const totalSai = pagas.reduce((s,p)=>s+(parseFloat(p.valor)||0),0)
+    const resultado = totalEnt - totalSai
+    document.getElementById('fm-entradas').textContent = 'R$ '+fmt(totalEnt)
+    document.getElementById('fm-saidas').textContent = 'R$ '+fmt(totalSai)
+    document.getElementById('fm-resultado').textContent = 'R$ '+fmt(resultado)
+    document.getElementById('fm-resultado').style.color = resultado>=0?'#16a34a':'#dc2626'
+    document.getElementById('fm-saldo').textContent = 'R$ '+fmt(resultado)
+    // Group by day
+    const days = {}
+    recebidas.forEach(r=>{ const d=r.data_vencimento; days[d]=days[d]||{ent:0,sai:0}; days[d].ent+=parseFloat(r.valor)||0 })
+    pagas.forEach(p=>{ const d=p.data_vencimento; days[d]=days[d]||{ent:0,sai:0}; days[d].sai+=parseFloat(p.valor)||0 })
+    let acum = 0
+    const tbody = document.getElementById('tbody-fluxo-mensal')
+    const sortedDays = Object.keys(days).sort()
+    if(!sortedDays.length){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#888;padding:30px">Nenhum lançamento no período</td></tr>'; return }
+    tbody.innerHTML = sortedDays.map(d=>{
+      const {ent,sai} = days[d]
+      acum += ent - sai
+      return `<tr>
+        <td>${fmtDate(d)}</td>
+        <td style="color:#16a34a">R$ ${fmt(ent)}</td>
+        <td style="color:#dc2626">R$ ${fmt(sai)}</td>
+        <td style="color:${ent-sai>=0?'#16a34a':'#dc2626'};font-weight:600">R$ ${fmt(ent-sai)}</td>
+        <td style="font-weight:600">R$ ${fmt(acum)}</td>
+      </tr>`
+    }).join('')
+  } catch(e){ console.error('loadFluxoMensal',e) }
 }
 
 function abrirLancamento(tipo){ abrirModalLancamento(tipo) }
@@ -2659,7 +2777,55 @@ function exportarDRE(){ alert('Em breve: exportar PDF do DRE'); }
   </table></div>
 </div>
 
-<!-- ═══ DRE ═════════════════════════════════════════════════════════════ -->
+<!-- ═══ DRE ══════════════════════════════════════════════<!-- FLUXO DIARIO -->
+<div id="v-fluxo-diario" class="hidden">
+  <div class="mod-h">
+    <div><div class="mod-t">Fluxo de Caixa <span>Diário</span></div><div class="mod-sub">Entradas e saídas do dia</div></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="date" id="fluxo-diario-data" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px" onchange="loadFluxoDiario()">
+      <button class="btn-prim" onclick="loadFluxoDiario()">Atualizar</button>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+    <div class="kv-card"><div class="kv-lbl">Entradas do Dia</div><div class="kv-val" id="fd-entradas" style="color:#16a34a">R$ 0,00</div></div>
+    <div class="kv-card"><div class="kv-lbl">Saídas do Dia</div><div class="kv-val" id="fd-saidas" style="color:#dc2626">R$ 0,00</div></div>
+    <div class="kv-card"><div class="kv-lbl">Saldo do Dia</div><div class="kv-val" id="fd-saldo">R$ 0,00</div></div>
+    <div class="kv-card"><div class="kv-lbl">Saldo Acumulado</div><div class="kv-val" id="fd-acumulado">R$ 0,00</div></div>
+  </div>
+  <div class="card-box">
+    <table class="tbl" id="tb-fluxo-diario"><thead><tr><th>Hora</th><th>Descrição</th><th>Tipo</th><th>Categoria</th><th>Forma</th><th>Valor</th><th>Saldo</th></tr></thead><tbody id="tbody-fluxo-diario"><tr><td colspan="7" style="text-align:center;color:#888;padding:30px">Selecione uma data</td></tr></tbody></table>
+  </div>
+</div>
+
+<!-- FLUXO MENSAL -->
+<div id="v-fluxo-mensal" class="hidden">
+  <div class="mod-h">
+    <div><div class="mod-t">Fluxo de Caixa <span>Mensal</span></div><div class="mod-sub">Visão consolidada do mês</div></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select id="fluxo-mensal-mes" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px" onchange="loadFluxoMensal()">
+        <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
+        <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
+        <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
+        <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+      </select>
+      <select id="fluxo-mensal-ano" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px" onchange="loadFluxoMensal()">
+        <option>2024</option><option selected>2025</option><option>2026</option>
+      </select>
+      <button class="btn-prim" onclick="loadFluxoMensal()">Atualizar</button>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+    <div class="kv-card"><div class="kv-lbl">Total Entradas</div><div class="kv-val" id="fm-entradas" style="color:#16a34a">R$ 0,00</div></div>
+    <div class="kv-card"><div class="kv-lbl">Total Saídas</div><div class="kv-val" id="fm-saidas" style="color:#dc2626">R$ 0,00</div></div>
+    <div class="kv-card"><div class="kv-lbl">Resultado</div><div class="kv-val" id="fm-resultado">R$ 0,00</div></div>
+    <div class="kv-card"><div class="kv-lbl">Saldo Final</div><div class="kv-val" id="fm-saldo">R$ 0,00</div></div>
+  </div>
+  <div class="card-box">
+    <table class="tbl" id="tb-fluxo-mensal"><thead><tr><th>Dia</th><th>Entradas</th><th>Saídas</th><th>Resultado</th><th>Saldo Acumulado</th></tr></thead><tbody id="tbody-fluxo-mensal"><tr><td colspan="5" style="text-align:center;color:#888;padding:30px">Selecione mês e ano</td></tr></tbody></table>
+  </div>
+</div>
+
+═══════════════ -->
 <div id="v-dre" class="hidden">
   <div class="mod-h">
     <div><div class="mod-t">DRE — <span>Demonstrativo de Resultado</span></div>
