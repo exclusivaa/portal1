@@ -190,7 +190,7 @@ html,body{height:100%;font-family:Barlow,sans-serif;-webkit-font-smoothing:antia
 .mp-tab:hover{color:var(--ink)}
 .mp-tab.on{color:var(--purple);border-bottom-color:var(--purple)}
 /* Form fields */
-.mp-body{padding:20px 24px}
+.mp-body{padding:20px 24px}#mpt-dados,#mpt-endereco,#mpt-financeiro,#mpt-extra{display:none}#mpt-dados{display:block}
 .mp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .mp-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .mp-f{display:flex;flex-direction:column}
@@ -1267,6 +1267,14 @@ let MP_TIPO="cliente", MP_EDIT_ID=null
 const var_purple="#671e75"
 
 function abrirModalPessoa(tipo="cliente", editId=null){
+  // Reset to first tab
+  ['mpt-dados','mpt-endereco','mpt-financeiro','mpt-extra'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display='none';
+  });
+  const dadosEl=document.getElementById('mpt-dados'); if(dadosEl) dadosEl.style.display='block';
+  document.querySelectorAll('.mp-tab').forEach(b=>b.classList.remove('on'));
+  const firstTab=document.querySelector('.mp-tab'); if(firstTab) firstTab.classList.add('on');
+  
   MP_EDIT_ID=editId; MP_TIPO=tipo
   document.getElementById("modalPessoa").classList.add("on")
   document.getElementById("mpAlert").style.display="none"
