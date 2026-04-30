@@ -2112,22 +2112,18 @@ function importarExtratoBancario(input){
 }
 
 function parseOFX(text){
-  const transacoes=[];
-  const dtposted=text.matchAll(/<DTPOSTED>(d{8})/g);
-  const trnamt=text.matchAll(/<TRNAMT>([-d.]+)/g);
-  const memo=text.matchAll(/<MEMO>([^
-<]+)/g);
-  const fitid=text.matchAll(/<FITID>([^
-<]+)/g);
-  const amts=[...trnamt], mems=[...memo], dates=[...dtposted], ids=[...fitid];
-  for(let i=0;i<amts.length;i++){
-    const d=dates[i]?.[1]||'';
-    const data=d?`${d.substring(0,4)}-${d.substring(4,6)}-${d.substring(6,8)}`:'';
-    transacoes.push({
-      data, valor:parseFloat(amts[i][1]), descricao:(mems[i]?.[1]||'').trim(), fitid:ids[i]?.[1]||i
-    });
-  }
-  return transacoes;
+  const txs = [];
+  const blocks = text.split('<STMTTRN>').slice(1);
+  blocks.forEach(b => {
+    const get = (tag) => { const m = b.match(new RegExp('<'+tag+'>([^<\r\n]+)')); return m ? m[1].trim() : ''; };
+    const tipo  = get('TRNTYPE');
+    const data  = get('DTPOSTED').substring(0,8);
+    const valor = parseFloat(get('TRNAMT').replace(',','.')) || 0;
+    const id    = get('FITID');
+    const memo  = get('MEMO');
+    if(id) txs.push({ tipo, data, valor, id, memo });
+  });
+  return txs;
 }
 
 function parseCSVExtrato(text){
