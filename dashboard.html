@@ -789,7 +789,16 @@ function initAuth(){
     const nome = email.split("@")[0]
     document.getElementById("userName").textContent = nome.charAt(0).toUpperCase()+nome.slice(1)
     document.getElementById("userAv").textContent = nome.substring(0,2).toUpperCase()
-    loadEmpresas()
+    loadEmpresas().then(() => {
+      const emp = JSON.parse(localStorage.getItem('ea_empresa') || 'null');
+      if(emp && APP.empresas.some(e => e.id === emp.id)){
+        APP.empresa = emp;
+        document.getElementById('clName').textContent = emp.nome_empresa;
+        document.getElementById('clDot').style.display = 'block';
+        document.getElementById('tbChip').style.display = 'flex';
+        document.getElementById('tbClientName').textContent = emp.nome_empresa;
+      }
+    });
   } catch { window.location.href='/index.html' }
 }
 
@@ -841,6 +850,7 @@ document.addEventListener("click", e=>{
 
 function selectEmpresa(id, nome){
   APP.empresa = { id, nome_empresa: nome }
+  localStorage.setItem('ea_empresa', JSON.stringify({ id, nome_empresa: nome }))
   document.getElementById("clName").textContent = nome
   document.getElementById("clDot").style.display = "block"
   document.getElementById("clDd").classList.remove("on")
@@ -1553,17 +1563,21 @@ function abrirModalLancamento(tipo='pagar', editId=null){
   lancCarregarCategorias(isDespesa ? 'despesa' : 'receita')
 }
 
-async function lancCarregarContatos(){
+async function lancCarregarContatos(tipo){
   try {
     const empId = APP.empresa?.id;
-    const q = empId ? `cliente_bop_id=eq.${empId}&` : ``;
-    const r = await fetch(SB+`/rest/v1/pessoas?${q}select=id,nome,subtipo&order=nome`, {headers:hdrs()});
+    let params = 'select=id,nome,subtipo&order=nome';
+    if(empId) params = 'cliente_bop_id=eq.' + empId + '&' + params;
+    // Filtrar subtipo conforme tipo de lançamento
+    if(tipo === 'fornecedor') params += '&subtipo=in.(fornecedor,pj,prestador,geral)';
+    else if(tipo === 'cliente') params += '&subtipo=in.(cliente,geral)';
+    const r = await fetch(SB + '/rest/v1/pessoas?' + params, {headers:hdrs()});
     const pessoas = await r.json();
     const sel = document.getElementById('lanc-forn');
     if(!sel) return;
     const prev = sel.value;
-    sel.innerHTML = '<option value="">— Nenhum —</option>';
-    if(Array.isArray(pessoas)) {
+    sel.innerHTML = '<option value="">— Selecionar —</option>';
+    if(Array.isArray(pessoas) && pessoas.length > 0) {
       pessoas.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p.id;
@@ -1571,6 +1585,8 @@ async function lancCarregarContatos(){
         sel.appendChild(opt);
       });
       if(prev) sel.value = prev;
+    } else {
+      sel.innerHTML += '<option disabled>— Nenhum cadastrado —</option>';
     }
   } catch(e){ console.error('lancCarregarContatos',e); }
 }
